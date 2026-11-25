@@ -83,7 +83,6 @@
       flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
       bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
       settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
-      store: '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/>',
       snowflake: '<line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/>',
       calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
       calendarPlus: '<path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/>',
@@ -1419,12 +1418,10 @@
         toastTimer.current = setTimeout(() => setToast(null), 3200);
       };
 
-      // Stan domu (bez punktacji)
+      // Stan domu (bez punktacji i bez trybu sklepu)
       const defaultHousehold = {
         user1Name: 'Kuba',
         user2Name: 'Ania',
-        inStoreBy: null,
-        inStoreAt: null,
         nudge: null,
         mealPlan: {},
         starterVotes: {},
@@ -1614,7 +1611,7 @@
             (err) => console.warn('Błąd synchronizacji lodówki:', err)
           );
 
-        const unsubChores = db
+                const unsubChores = db
           .collection(colPath('chores'))
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
@@ -1626,7 +1623,7 @@
                 try {
                   const hSnap = await houseDocRef.get();
                   if (!hSnap.exists || !hSnap.data()?.choresSeeded) {
-                    await houseDocRef.set({ choresSeeded: true }, { merge: true });
+                    await houseDocRef.set({ choresSeeded: true }, { mergeFields: ['choresSeeded'] });
                     const now = Date.now();
                     for (let i = 0; i < STARTER_CHORES.length; i++) {
                       const sc = STARTER_CHORES[i];
@@ -1767,9 +1764,6 @@
             if (!dbRef.current || !authUser) {
               setShoppingItems([]);
             }
-            if (household.inStoreBy === activeProfile) {
-              await updateHouseholdField({ inStoreBy: null, inStoreAt: null });
-            }
             showToast(
               movedFoodCount > 0
                 ? `Wszystko kupione! Przeniesiono ${movedFoodCount} prod. do Lodówki i Szafki 🎉`
@@ -1877,9 +1871,6 @@
           if (!dbRef.current || !authUser) {
             setShoppingItems((prev) => prev.filter((i) => !i.checked));
           }
-          if (household.inStoreBy === activeProfile) {
-            await updateHouseholdField({ inStoreBy: null, inStoreAt: null });
-          }
           showToast(`Przeniesiono ${movedFoodCount} prod. do Lodówki i Szafki (chemia pominięta) ✅`);
         } catch (err) {
           console.warn('Błąd czyszczenia koszyka:', err);
@@ -1921,21 +1912,8 @@
         showToast(newFridgeLocation === 'fridge' ? 'Dodano do Lodówki ❄️' : 'Dodano do Szafki 🗄️');
       };
 
-      const toggleInStore = async () => {
-        const amIInStore = household.inStoreBy === activeProfile;
-        await updateHouseholdField({
-          inStoreBy: amIInStore ? null : activeProfile,
-          inStoreAt: amIInStore ? null : Date.now()
-        });
-        showToast(
-          amIInStore
-            ? 'Zakończono tryb sklepowy'
-            : `Włączono tryb „W sklepie” — ${partnerUserName} widzi powiadomienie! 🏪`
-        );
-      };
-
       // ==========================================================================
-      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI)
+      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI + POPRAWIONE USUWANIE)
       // ==========================================================================
       const handleAddChore = async (choreData) => {
         const entry = {
@@ -1956,7 +1934,7 @@
 
       const completeChore = async (chore) => {
         const now = Date.now();
-        if (dbRef.current && authUser) {
+        if (dbRef.current && authUser && !String(chore.id).startsWith('starter-chore-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: now,
             lastDoneBy: activeProfile
@@ -1970,7 +1948,7 @@
       };
 
       const undoChore = async (chore) => {
-        if (dbRef.current && authUser) {
+        if (dbRef.current && authUser && !String(chore.id).startsWith('starter-chore-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: null,
             lastDoneBy: null
@@ -1984,12 +1962,25 @@
       };
 
       const deleteChore = async (chore) => {
-        if (dbRef.current && authUser) {
-          await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).delete();
-        } else {
-          setChores((prev) => prev.filter((c) => c.id !== chore.id));
+        // Najpierw usuwamy lokalnie, żeby obowiązek zniknął natychmiast po kliknięciu kosza
+        const prevChores = chores;
+        setChores((prev) => prev.filter((c) => c.id !== chore.id));
+        try {
+          if (dbRef.current && authUser) {
+            // Zapewniamy, że po usunięciu ostatniego obowiązku baza nie zasiała ponownie startowych
+            if (!householdRef.current.choresSeeded) {
+              await updateHouseholdField({ choresSeeded: true });
+            }
+            if (!String(chore.id).startsWith('starter-chore-')) {
+              await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).delete();
+            }
+          }
+          showToast('Usunięto obowiązek 🗑️');
+        } catch (err) {
+          console.warn('Błąd usuwania obowiązku:', err);
+          setChores(prevChores);
+          showToast('Nie udało się usunąć obowiązku — sprawdź połączenie', 'error');
         }
-        showToast('Usunięto obowiązek');
       };
 
       const sendNudge = async (chore) => {
@@ -2005,12 +1996,12 @@
       };
 
       // ==========================================================================
-      // OPERACJE: PRZEPISY, TINDER NA OBIAD I PLANER TYGODNIA
+      // OPERACJE: PRZEPISY I TINDER
       // ==========================================================================
       const saveNewRecipe = async (recipeData) => {
         const entry = {
           ...recipeData,
-          votes: { [activeProfile]: 'yes' },
+          votes: {},
           houseCode: cleanHouseId,
           createdAt: Date.now()
         };
@@ -2020,7 +2011,7 @@
           setCustomRecipes((prev) => [{ id: `rec-${Date.now()}`, ...entry }, ...prev]);
         }
         setImportModalMode(null);
-        showToast(`Zapisano przepis: ${recipeData.title} 🍽️`);
+        showToast(`Dodano przepis: ${recipeData.title} 🍽️`);
       };
 
       const deleteRecipe = async (recipe) => {
@@ -2031,27 +2022,28 @@
           setCustomRecipes((prev) => prev.filter((r) => r.id !== recipe.id));
         }
         setSelectedRecipeId(null);
-        showToast('Usunięto przepis');
+        showToast('Usunięto przepis 🗑️');
       };
 
       const voteRecipe = async (recipe, vote) => {
         const isStarter = String(recipe.id || '').startsWith('starter-');
-        const nextVotes = { ...(recipe.votes || {}), [activeProfile]: vote };
-
         if (isStarter) {
-          const nextStarterVotes = {
-            ...(householdRef.current.starterVotes || {}),
-            [recipe.id]: nextVotes
+          const currentVotes = householdRef.current.starterVotes || {};
+          const nextVotes = {
+            ...currentVotes,
+            [recipe.id]: {
+              ...(currentVotes[recipe.id] || {}),
+              [activeProfile]: vote
+            }
           };
-          await updateHouseholdField({ starterVotes: nextStarterVotes });
-        } else if (dbRef.current && authUser) {
-          await dbRef.current.doc(`${colPath('recipes')}/${recipe.id}`).update({ votes: nextVotes });
+          await updateHouseholdField({ starterVotes: nextVotes });
         } else {
-          setCustomRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, votes: nextVotes } : r)));
-        }
-
-        if (nextVotes.user1 === 'yes' && nextVotes.user2 === 'yes') {
-          showToast(`🔥 MAMY MATCH! Oboje chcecie: ${recipe.title}`);
+          const nextVotes = { ...(recipe.votes || {}), [activeProfile]: vote };
+          if (dbRef.current && authUser) {
+            await dbRef.current.doc(`${colPath('recipes')}/${recipe.id}`).update({ votes: nextVotes });
+          } else {
+            setCustomRecipes((prev) => prev.map((r) => (r.id === recipe.id ? { ...r, votes: nextVotes } : r)));
+          }
         }
       };
 
@@ -2509,33 +2501,6 @@
               </div>
             )}
 
-            {/* BANER: PARTNER JEST W SKLEPIE */}
-            {household.inStoreBy && (
-              <div className="bg-emerald-600 text-white rounded-3xl p-3.5 shadow-sm flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                    <Icon name="store" className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-extrabold">
-                      {household.inStoreBy === 'user1' ? household.user1Name : household.user2Name} jest teraz w sklepie! 🛒
-                    </p>
-                    <p className="text-[11px] text-emerald-100">
-                      Dopisz szybciutko czego brakuje — pojawi się na żywo.
-                    </p>
-                  </div>
-                </div>
-                {household.inStoreBy === activeProfile && (
-                  <button
-                    onClick={toggleInStore}
-                    className="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 rounded-xl text-[11px] font-bold shrink-0"
-                  >
-                    Wyszłam/em
-                  </button>
-                )}
-              </div>
-            )}
-
             {/* BANER: SZTURCHNIĘCIE OBOWIĄZKOWE */}
             {household.nudge && household.nudge.from !== activeProfile && (
               <div className="bg-amber-50 border border-amber-200 rounded-3xl p-3.5 flex items-center justify-between gap-3">
@@ -2798,18 +2763,19 @@
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 pl-1">Ilość:</span>
                         <input
                           type="text"
                           inputMode="decimal"
-                          value={newFridgeAmount}
-                          onChange={(e) => setNewFridgeAmount(e.target.value)}
-                          className="w-16 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                          value={newItemAmount}
+                          onChange={(e) => setNewItemAmount(e.target.value)}
+                          className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
                           aria-label="Ilość"
                         />
                         <select
-                          value={newFridgeUnit}
-                          onChange={(e) => setNewFridgeUnit(e.target.value)}
-                          className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"
+                          value={newItemUnit}
+                          onChange={(e) => setNewItemUnit(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
                           aria-label="Jednostka"
                         >
                           <option value="szt.">szt.</option>
@@ -2818,19 +2784,12 @@
                           <option value="ml">ml</option>
                           <option value="l">l</option>
                           <option value="opak.">opak.</option>
-                        </select>
-                        <select
-                          value={newFridgeLocation}
-                          onChange={(e) => setNewFridgeLocation(e.target.value)}
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold"
-                          aria-label="Miejsce przechowywania"
-                        >
-                          <option value="fridge">❄️ Lodówka</option>
-                          <option value="pantry">🗄️ Szafka</option>
+                          <option value="pęczek">pęczek</option>
                         </select>
                       </div>
                     </form>
 
+                    {uncheckedShopping.length === 0 && checkedShopping.length === 0 ? (
                     {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
                         <p className="text-4xl mb-2">{storageFilter === 'fridge' ? '❄️' : '🗄️'}</p>
@@ -3146,33 +3105,33 @@
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2">
-                                <span
-                                  className={`text-xs font-extrabold px-2.5 py-1 rounded-xl ${
-                                    isToday ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'
-                                  }`}
-                                >
-                                  {day.label}
-                                </span>
-                                {isToday && (
-                                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600">
-                                    Dziś
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[11px] font-semibold text-slate-400">
-                                {dayCount}/3 posiłki
-                              </span>
-                            </div>
+                        <span className="text-xs font-bold text-slate-500 pl-1">Ilość:</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={newFridgeAmount}
+                          onChange={(e) => setNewFridgeAmount(e.target.value)}
+                          className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                          aria-label="Ilość"
+                        />
+                        <select
+                          value={newFridgeUnit}
+                          onChange={(e) => setNewFridgeUnit(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                          aria-label="Jednostka"
+                        >
+                          <option value="szt.">szt.</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                          <option value="ml">ml</option>
+                          <option value="l">l</option>
+                          <option value="opak.">opak.</option>
+                          <option value="pęczek">pęczek</option>
+                        </select>
+                      </div>
+                    </form>
 
-                            <div className="space-y-2">
-                              {MEAL_SLOTS.map((slot) => {
-                                const entry = dayMeals[slot.id];
-                                const linkedRecipe =
-                                  entry && (entry.recipeId || entry.starterId)
-                                    ? recipes.find(
-                                        (r) =>
-                                          r.id === entry.recipeId ||
-                                          (entry.starterId && (r.id === entry.starterId || r.starterId === entry.starterId))
+                    {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).length === 0 ? (
                                       )
                                     : null;
 
@@ -4461,15 +4420,14 @@
                             />
                             <button
                               type="button"
-                              disabled={!inlineKeyInput.trim() || loading}
                               onClick={() => {
-                                const k = inlineKeyInput.trim();
-                                if (onSaveGeminiKey) onSaveGeminiKey(k);
-                                runAI(k);
+                                if (!inlineKeyInput.trim()) return;
+                                onSaveGeminiKey(inlineKeyInput.trim());
+                                runAI(inlineKeyInput.trim());
                               }}
-                              className="px-3 py-1.5 bg-indigo-600 disabled:opacity-45 text-white rounded-xl text-xs font-bold shrink-0"
+                              className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0"
                             >
-                              Zapisz i AI
+                              Użyj AI
                             </button>
                           </div>
                         </div>
