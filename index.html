@@ -170,13 +170,13 @@
       { id: 'klasyki', label: 'Klasyki', emoji: '🇵🇱' }
     ];
 
-    const STARTER_CHORES = [
-      { id: 'starter-chore-1', title: 'Wyrzucenie śmieci i segregacja', frequency: 'co_2_dni', assignedTo: 'both' },
-      { id: 'starter-chore-2', title: 'Rozładowanie zmywarki', frequency: 'codziennie', assignedTo: 'both' },
-      { id: 'starter-chore-3', title: 'Odkurzanie mieszkania', frequency: 'co_tydzien', assignedTo: 'both' },
-      { id: 'starter-chore-4', title: 'Pranie i rozwieszenie', frequency: 'co_2_dni', assignedTo: 'both' },
-      { id: 'starter-chore-5', title: 'Sprzątanie łazienki', frequency: 'co_tydzien', assignedTo: 'both' }
-    ];
+    const LEGACY_STARTER_CHORE_TITLES = new Set([
+      'Wyrzucenie śmieci i segregacja',
+      'Rozładowanie zmywarki',
+      'Odkurzanie mieszkania',
+      'Pranie i rozwieszenie',
+      'Sprzątanie łazienki'
+    ]);
 
     const STARTER_RECIPES = [
       {
@@ -1175,31 +1175,16 @@
     // ============================================================================
     function guessShoppingCategory(name) {
       const n = (name || '').toLowerCase().trim();
-      // 1. Najpierw chemia i dom
       if (/(papier|mydło|mydlo|płyn|plyn|kapsułk|kapsulk|proszek|worki|ręcznik|recznik|pasta do zębów|szampon|gąbk|gabk|ścierecz|scierecz|tabletki do zmyw|odświeżacz|wybielacz|domestos|cif|ludwik|do szyb)/.test(n)) return 'chemia';
-
-      // 2. Przyprawy, zioła suszone, oliwy i sosy
       if (/(sól|sol|pieprz|oliw|olej|sos|passat|ketchup|musztard|majonez|przypraw|curry|oregano|cukier|mleczko kokos|suszon|granulowan|mielon[aey]|wędzon[aey]|słodk[aey]\s+papryk|ostr[aey]\s+papryk|papryka\s+(słodka|slodka|ostra|wędzona|wedzona)|cynamon|kurkum|imbir\s+mielon|kumin|kminek|majeranek|tymianek|rozmaryn|bazylia\s+suszon|liść laurowy|lisc laurowy|ziele angielskie|proszek do pieczenia|soda oczyszczona|wanili|ocet|pesto|bulion|kostk[ai]\s+rosołow|zakwas|chrzan|koncentrat|w puszce|w słoiku)/.test(n)) return 'przyprawy';
-
-      // 3. Sypkie, makarony, kasze, mąki, puszki suche
       if (/(makaron|ryż|ryz|kasza|mąka|maka|płatki|platki|ciecierzyc|fasol|gnocchi|soczewic|bułka tarta|bulka tarta|sezam|pestki|orzech|migdał|rodzynk|drożdż|drozdz|kukurydza konserw|groszek konserw)/.test(n)) return 'sypkie';
-
-      // 4. Nabiał i jaja
       if (/(mleko|ser\b|serek|parmezan|mozzarell|feta|cheddar|jogurt|śmietan|smietan|masło|maslo|jajk|twaróg|twarog|kefir|maślank|maslank)/.test(n)) return 'nabial';
-
-      // 5. Mięso i ryby
       if (/(kurczak|indyk|mięso|mieso|schab|wołow|wolow|wieprz|szynk|boczek|kiełbas|kielbas|łosoś|losos|tuńczyk|tunczyk|ryba|krewet|filet|pierś|piers|karkówk|karkowk|polędwic|poledwic)/.test(n)) return 'mieso';
-
-      // 6. Pieczywo
       if (/(chleb|bułk|bulk|tortill|bagiet|pieczyw|tost|chałk|chalk|kajzerk|rogale)/.test(n)) return 'pieczywo';
-
-      // 7. Warzywa i owoce (świeże)
       if (/(pomidor|ogórek|ogorek|cebula|czosnek|szpinak|sałat|salat|marchew|ziemniak|cukini|papryk|jabłk|jablk|banan|cytryn|koperek|bazyl|brokuł|brokul|pieczark|awokado|owoc|warzyw|rzodkiew|szczypior|natka|pietruszk|seler|por\b|dynia|borówk|borowk|malin|truskawk|gruszk|pomarańcz|pomarancz|ziemniaki|włoszczyzn|wloszczyzn)/.test(n)) return 'warzywa';
-
       return 'inne';
     }
 
-    // Określa czy produkt spożywczy trafia do Lodówki ('fridge') czy do Szafki ('pantry')
     function guessStorageLocation(name, category) {
       const cat = category || guessShoppingCategory(name);
       if (cat === 'chemia') return 'none';
@@ -1341,6 +1326,9 @@
       return diffHours >= days * 20;
     }
 
+    // ============================================================================
+    // INICJALIZACJA KONFIGURACJI (obsługa magicznego linku #setup= i iOS PWA!)
+    // ============================================================================
     function bootstrapInitialSettings() {
       try {
         const hash = window.location.hash || '';
@@ -1420,7 +1408,7 @@
         nudge: null,
         mealPlan: {},
         starterVotes: {},
-        choresSeeded: false
+        choresSeeded: true
       };
 
       const loadLocal = (key, fallback) => {
@@ -1436,9 +1424,12 @@
 
       const [shoppingItems, setShoppingItems] = useState(() => loadLocal('shopping', []));
       const [fridgeItems, setFridgeItems] = useState(() => loadLocal('fridge', []));
-      const [chores, setChores] = useState(() => loadLocal('chores', STARTER_CHORES));
+      const [chores, setChores] = useState(() =>
+        loadLocal('chores', []).filter((c) => !LEGACY_STARTER_CHORE_TITLES.has(c.title))
+      );
       const [customRecipes, setCustomRecipes] = useState(() => loadLocal('recipes', []));
 
+      // Scalone przepisy (startowe + własne + głosy Tinder)
       const recipes = useMemo(() => {
         const starterVotes = household.starterVotes || {};
         const mergedStarters = STARTER_RECIPES.map((r) => ({
@@ -1448,6 +1439,7 @@
         return [...customRecipes, ...mergedStarters];
       }, [customRecipes, household.starterVotes]);
 
+      // Zapis lokalny (tryb offline / przed podpięciem Firebase)
       useEffect(() => {
         if (fbConfig) return;
         try {
@@ -1459,6 +1451,7 @@
         } catch (_) {}
       }, [fbConfig, cleanHouseId, household, shoppingItems, fridgeItems, chores, customRecipes]);
 
+      // Zapis preferencji profilu i kodu domu + aktualizacja #setup dla instalacji iOS PWA
       useEffect(() => {
         localStorage.setItem('naszdom_profile', activeProfile);
         localStorage.setItem('naszdom_house_code', houseCode);
@@ -1563,7 +1556,7 @@
               houseDocRef
                 .set({
                   ...defaultHousehold,
-                  choresSeeded: false,
+                  choresSeeded: true,
                   createdAt: Date.now()
                 })
                 .catch((e) => console.warn('Błąd tworzenia dokumentu domu:', e));
@@ -1608,33 +1601,16 @@
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
             async (snap) => {
-              const items = snap.docs
-                .map((d) => ({ id: d.id, ...d.data() }))
-                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-              if (items.length === 0 && !householdRef.current.choresSeeded) {
-                try {
-                  const hSnap = await houseDocRef.get();
-                  if (!hSnap.exists || !hSnap.data()?.choresSeeded) {
-                    await houseDocRef.set({ choresSeeded: true }, { mergeFields: ['choresSeeded'] });
-                    const now = Date.now();
-                    for (let i = 0; i < STARTER_CHORES.length; i++) {
-                      const sc = STARTER_CHORES[i];
-                      await db.collection(colPath('chores')).add({
-                        title: sc.title,
-                        frequency: sc.frequency,
-                        assignedTo: sc.assignedTo,
-                        houseCode: cleanHouseId,
-                        lastDoneAt: null,
-                        lastDoneBy: null,
-                        createdAt: now + i
-                      });
-                    }
-                    return;
-                  }
-                } catch (e) {
-                  console.warn('Błąd inicjalizacji obowiązków:', e);
+              const allItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+              const legacyDocs = allItems.filter((item) => LEGACY_STARTER_CHORE_TITLES.has(item.title));
+              if (legacyDocs.length > 0) {
+                for (const docItem of legacyDocs) {
+                  db.doc(`${colPath('chores')}/${docItem.id}`).delete().catch(() => {});
                 }
               }
+              const items = allItems
+                .filter((item) => !LEGACY_STARTER_CHORE_TITLES.has(item.title))
+                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
               setChores(items);
             },
             (err) => console.warn('Błąd synchronizacji obowiązków:', err)
@@ -1922,7 +1898,7 @@
 
       const completeChore = async (chore) => {
         const now = Date.now();
-        if (dbRef.current && authUser && !String(chore.id).startsWith('starter-chore-')) {
+        if (dbRef.current && authUser) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: now,
             lastDoneBy: activeProfile
@@ -1936,7 +1912,7 @@
       };
 
       const undoChore = async (chore) => {
-        if (dbRef.current && authUser && !String(chore.id).startsWith('starter-chore-')) {
+        if (dbRef.current && authUser) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: null,
             lastDoneBy: null
@@ -1954,12 +1930,7 @@
         setChores((prev) => prev.filter((c) => c.id !== chore.id));
         try {
           if (dbRef.current && authUser) {
-            if (!householdRef.current.choresSeeded) {
-              await updateHouseholdField({ choresSeeded: true });
-            }
-            if (!String(chore.id).startsWith('starter-chore-')) {
-              await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).delete();
-            }
+            await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).delete();
           }
           showToast('Usunięto obowiązek 🗑️');
         } catch (err) {
@@ -2690,7 +2661,6 @@
                     )}
                   </>
                 ) : (
-                  /* PODZAKŁADKA: ZAPASY (LODÓWKA + SZAFKA) */
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/70">
                       <button
@@ -2779,7 +2749,7 @@
                           {storageFilter === 'fridge' ? 'Lodówka jest pusta' : 'Szafka jest pusta'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Kupione produkty spożywcze trafią tu automatycznie po odhaczeniu całej listy zakupów!
+                          Kupione produkty spożywcze wpadają tu automatycznie, a przepisy odliczają je z listy zakupów!
                         </p>
                       </div>
                     ) : (
@@ -2795,14 +2765,14 @@
                                 }
                                 className="text-[11px] font-bold text-slate-400 hover:text-indigo-600 mt-0.5"
                               >
-                                {storageFilter === 'fridge' ? '→ Przenieś do Szafki' : '→ Przenieś do Lodówki'}
+                                {storageFilter === 'fridge' ? 'Przenieś do Szafki →' : 'Przenieś do Lodówki →'}
                               </button>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
                                 type="button"
                                 onClick={() => updateFridgeAmount(item, -1)}
-                                className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
+                                className="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"
                                 aria-label="Zmniejsz ilość"
                               >
                                 <Icon name="minus" className="w-3.5 h-3.5" />
@@ -2813,7 +2783,7 @@
                               <button
                                 type="button"
                                 onClick={() => updateFridgeAmount(item, 1)}
-                                className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
+                                className="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"
                                 aria-label="Zwiększ ilość"
                               >
                                 <Icon name="plus" className="w-3.5 h-3.5" />
@@ -2833,12 +2803,12 @@
                ================================================================== */}
             {activeTab === 'chores' && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-3xl shadow-sm border border-slate-200/70">
-                  <div className="flex gap-1.5">
+                <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 flex items-center justify-between gap-2">
+                  <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl">
                     <button
                       type="button"
                       onClick={() => setChoresFilter('due')}
-                      className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         choresFilter === 'due' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
                       }`}
                     >
@@ -2847,7 +2817,7 @@
                     <button
                       type="button"
                       onClick={() => setChoresFilter('all')}
-                      className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         choresFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
                       }`}
                     >
@@ -2869,10 +2839,12 @@
                   <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
                     <p className="text-4xl mb-2">✨</p>
                     <p className="text-sm font-bold text-slate-800">
-                      {choresFilter === 'due' ? 'Wszystko na dziś ogarnięte!' : 'Brak obowiązków na liście'}
+                      {chores.length === 0 ? 'Brak dodanych obowiązków' : 'Wszystko zrobione na dziś!'}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Kliknij „Dodaj”, żeby dopisać własne zadanie domowe.
+                      {chores.length === 0
+                        ? 'Kliknij „+ Dodaj”, aby utworzyć własne obowiązki domowe.'
+                        : 'Przełącz na „Wszystkie”, aby zobaczyć zadania wykonane niedawno.'}
                     </p>
                   </div>
                 ) : (
@@ -2889,17 +2861,17 @@
                       return (
                         <div
                           key={chore.id}
-                          className={`bg-white rounded-3xl p-3.5 shadow-sm border flex items-center justify-between gap-3 ${
-                            due ? 'border-slate-200/80' : 'border-emerald-200/70 bg-emerald-50/30 opacity-80'
+                          className={`bg-white rounded-3xl p-4 shadow-sm border transition-all flex items-center justify-between gap-3 ${
+                            due ? 'border-slate-200/80' : 'border-emerald-200/80 bg-emerald-50/30 opacity-80'
                           }`}
                         >
                           <button
                             type="button"
                             onClick={() => (due ? completeChore(chore) : undoChore(chore))}
-                            className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                            className="flex items-start gap-3 flex-1 min-w-0 text-left"
                           >
                             <span
-                              className={`w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                              className={`mt-0.5 w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                 due
                                   ? 'border-2 border-slate-300 bg-white'
                                   : 'bg-emerald-500 text-white'
@@ -2916,7 +2888,7 @@
                                 {chore.title}
                               </p>
                               <p className="text-[11px] text-slate-500 mt-0.5">
-                                {FREQUENCY_LABELS[chore.frequency] || 'Cyklicznie'}
+                                {FREQUENCY_LABELS[chore.frequency] || 'Cykliczne'}
                                 {!due && doneByName ? ` • Zrobił(a): ${doneByName}` : ''}
                               </p>
                             </div>
@@ -2936,7 +2908,7 @@
                             <button
                               type="button"
                               onClick={() => deleteChore(chore)}
-                              className="p-2 rounded-xl text-slate-300 hover:text-rose-500"
+                              className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50"
                               aria-label="Usuń obowiązek"
                             >
                               <Icon name="trash" className="w-4 h-4" />
@@ -2957,7 +2929,6 @@
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-3xl shadow-sm border border-slate-200/70">
                   <button
-                    type="button"
                     onClick={() => setRecipesSubTab('list')}
                     className={`py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                       recipesSubTab === 'list' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
@@ -2967,7 +2938,6 @@
                     Przepisy ({recipes.length})
                   </button>
                   <button
-                    type="button"
                     onClick={() => setRecipesSubTab('planner')}
                     className={`py-2.5 px-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                       recipesSubTab === 'planner' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600'
@@ -2979,49 +2949,61 @@
                 </div>
 
                 {recipesSubTab === 'planner' ? (
-                  /* PODZAKŁADKA: PLANER POSIŁKÓW (ŚNIADANIE, OBIAD, KOLACJA • PON–ND) */
                   <div className="space-y-3">
-                    <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5">
-                      <button
-                        type="button"
-                        onClick={openWeeklyPlanShoppingModal}
-                        className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
-                      >
-                        <Icon name="cart" className="w-4 h-4" />
-                        Zakupy na cały tydzień ({uncookedPlannedMealsCount})
-                      </button>
+                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <h2 className="text-sm font-extrabold text-slate-900">Planer posiłków (Pon–Nd)</h2>
+                          <p className="text-[11px] text-slate-500">
+                            Śniadania, obiady i kolacje • Zaplanowano: {formatMealCount(plannedMealsCount)}
+                          </p>
+                        </div>
+                        {plannedMealsCount > 0 && (
+                          confirmClearPlan ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={clearMealPlan}
+                                className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-[11px] font-bold"
+                              >
+                                Potwierdź
+                              </button>
+                              <button
+                                onClick={() => setConfirmClearPlan(false)}
+                                className="px-2 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-bold"
+                              >
+                                Anuluj
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmClearPlan(true)}
+                              className="px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl text-[11px] font-bold"
+                            >
+                              Wyczyść tydzień
+                            </button>
+                          )
+                        )}
+                      </div>
 
                       <div className="grid grid-cols-2 gap-2">
                         <button
-                          type="button"
                           onClick={randomizeMissingLunches}
-                          className="py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5"
+                          className="py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
                         >
-                          <Icon name="shuffle" className="w-3.5 h-3.5" />
-                          Losuj wolne obiady
+                          <Icon name="shuffle" className="w-4 h-4" />
+                          Wylosuj puste obiady
                         </button>
-                        {confirmClearPlan ? (
-                          <button
-                            type="button"
-                            onClick={clearMealPlan}
-                            className="py-2 px-3 bg-rose-600 text-white rounded-2xl text-xs font-bold"
-                          >
-                            Potwierdź wyczyszczenie
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmClearPlan(true)}
-                            onBlur={() => setTimeout(() => setConfirmClearPlan(false), 2500)}
-                            className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-bold"
-                          >
-                            Wyczyść tydzień
-                          </button>
-                        )}
+                        <button
+                          onClick={openWeeklyPlanShoppingModal}
+                          disabled={uncookedPlannedMealsCount === 0}
+                          className="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-45 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                        >
+                          <Icon name="cart" className="w-4 h-4" />
+                          Zakupy z planu ({uncookedPlannedMealsCount})
+                        </button>
                       </div>
                     </div>
 
-                    {/* 7 DNI TYGODNIA — KAŻDY DZIEŃ MA ŚNIADANIE, OBIAD I KOLACJĘ */}
                     <div className="space-y-3">
                       {WEEK_DAYS.map((day) => {
                         const dayMeals = getDayMeals(mealPlan, day.id);
@@ -3086,7 +3068,6 @@
                                           </span>
                                           <div className="flex items-center gap-1">
                                             <button
-                                              type="button"
                                               onClick={() => updateMealPlanSlot(day.id, slot.id, { cooked: !entry.cooked })}
                                               className={`p-1 rounded-lg border ${
                                                 entry.cooked
@@ -3098,14 +3079,12 @@
                                               <Icon name="check" className="w-3.5 h-3.5" />
                                             </button>
                                             <button
-                                              type="button"
                                               onClick={() => setPlannerPickerTarget({ dayId: day.id, slotId: slot.id })}
                                               className="px-2 py-0.5 text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg"
                                             >
                                               Zmień
                                             </button>
                                             <button
-                                              type="button"
                                               onClick={() => removeMealPlanSlot(day.id, slot.id)}
                                               className="p-1 text-slate-300 hover:text-rose-500 rounded-lg"
                                               aria-label="Usuń posiłek"
@@ -3150,7 +3129,6 @@
                                           {linkedRecipe && (
                                             <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-0.5 shrink-0">
                                               <button
-                                                type="button"
                                                 onClick={() =>
                                                   updateMealPlanSlot(day.id, slot.id, {
                                                     servings: Math.max(1, (Number(entry.servings) || 2) - 1)
@@ -3164,7 +3142,6 @@
                                                 {entry.servings || 2} p.
                                               </span>
                                               <button
-                                                type="button"
                                                 onClick={() =>
                                                   updateMealPlanSlot(day.id, slot.id, {
                                                     servings: Math.min(12, (Number(entry.servings) || 2) + 1)
@@ -3180,7 +3157,6 @@
                                       </div>
                                     ) : (
                                       <button
-                                        type="button"
                                         onClick={() => setPlannerPickerTarget({ dayId: day.id, slotId: slot.id })}
                                         className="w-full py-1 px-1 flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
                                       >
@@ -3205,7 +3181,6 @@
                   <>
                     <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-2.5">
                       <button
-                        type="button"
                         onClick={() => setImportModalMode('image')}
                         className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-all"
                       >
@@ -3215,7 +3190,6 @@
 
                       <div className="grid grid-cols-2 gap-2">
                         <button
-                          type="button"
                           onClick={() => setImportModalMode('manual')}
                           className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                         >
@@ -3223,7 +3197,6 @@
                           Własny / Tekst / AI
                         </button>
                         <button
-                          type="button"
                           onClick={() => setShowMatchModal(true)}
                           className="py-2.5 px-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                         >
@@ -3247,7 +3220,6 @@
 
                       <div className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
                         <button
-                          type="button"
                           onClick={() => setSelectedTag('all')}
                           className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
                             selectedTag === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
@@ -3256,7 +3228,6 @@
                           Wszystkie
                         </button>
                         <button
-                          type="button"
                           onClick={() => setSelectedTag(selectedTag === 'matches' ? 'all' : 'matches')}
                           className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
                             selectedTag === 'matches' ? 'bg-rose-500 text-white' : 'bg-rose-50 text-rose-600'
@@ -3267,7 +3238,6 @@
                         {RECIPE_TAGS.map((t) => (
                           <button
                             key={t.id}
-                            type="button"
                             onClick={() => setSelectedTag(selectedTag === t.id ? 'all' : t.id)}
                             className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
                               selectedTag === t.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
@@ -3279,78 +3249,67 @@
                       </div>
                     </div>
 
-                    {filteredRecipes.length === 0 ? (
-                      <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
-                        <p className="text-4xl mb-2">🍽️</p>
-                        <p className="text-sm font-bold text-slate-800">Brak przepisów pasujących do filtra</p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Zmień wyszukiwanie albo dodaj własny przepis wyżej.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2.5">
-                        {filteredRecipes.map((recipe) => {
-                          const isMatch = recipe.votes?.user1 === 'yes' && recipe.votes?.user2 === 'yes';
-                          return (
-                            <div
-                              key={recipe.id}
-                              onClick={() => {
-                                setSelectedRecipeId(recipe.id);
-                                setPortionMultiplier(1);
-                                setCheckedSteps({});
-                              }}
-                              className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-3 cursor-pointer active:scale-[0.99] transition-transform"
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl shrink-0">
-                                  {recipe.emoji || '🍽️'}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
-                                      {recipe.title}
-                                    </h3>
-                                    {isMatch && (
-                                      <span className="px-2 py-0.5 bg-rose-500 text-white rounded-full text-[10px] font-bold">
-                                        🔥 MATCH
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-slate-500 mt-1">
-                                    ⏱ {recipe.prepTime || 25} min • 👥 {recipe.servings || 2} porcje • {recipe.ingredients?.length || 0} skł.
-                                  </p>
-                                </div>
+                    <div className="space-y-2.5">
+                      {filteredRecipes.map((recipe) => {
+                        const isMatch = recipe.votes?.user1 === 'yes' && recipe.votes?.user2 === 'yes';
+                        return (
+                          <div
+                            key={recipe.id}
+                            onClick={() => {
+                              setSelectedRecipeId(recipe.id);
+                              setPortionMultiplier(1);
+                              setCheckedSteps({});
+                            }}
+                            className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-3 cursor-pointer active:scale-[0.99] transition-transform"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl shrink-0">
+                                {recipe.emoji || '🍽️'}
                               </div>
-
-                              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-indigo-600">
-                                <span>Zobacz przepis</span>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setScheduleRecipeModal(recipe);
-                                    }}
-                                    className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1"
-                                  >
-                                    <Icon name="calendarPlus" className="w-3.5 h-3.5" />
-                                    Planuj
-                                  </button>
-                                  <Icon name="chevronRight" className="w-4 h-4" />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
+                                    {recipe.title}
+                                  </h3>
+                                  {isMatch && (
+                                    <span className="px-2 py-0.5 bg-rose-500 text-white rounded-full text-[10px] font-bold">
+                                      🔥 MATCH
+                                    </span>
+                                  )}
                                 </div>
+                                <p className="text-xs text-slate-500 mt-1">
+                                  ⏱ {recipe.prepTime || 25} min • 👥 {recipe.servings || 2} porcje • {recipe.ingredients?.length || 0} skł.
+                                </p>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-indigo-600">
+                              <span>Zobacz przepis</span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setScheduleRecipeModal(recipe);
+                                  }}
+                                  className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1"
+                                >
+                                  <Icon name="calendarPlus" className="w-3.5 h-3.5" />
+                                  Planuj
+                                </button>
+                                <Icon name="chevronRight" className="w-4 h-4" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
               </div>
             )}
           </main>
 
-          {/* DOLNA NAWIGACJA (Z BEZPIECZNYM MARGINESEM POD PASEK GESTÓW iPhone) */}
+          {/* DOLNA NAWIGACJA */}
           <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 safe-bottom">
             <div className="max-w-xl mx-auto px-4 pt-2 flex items-center justify-around">
               {[
@@ -3451,7 +3410,6 @@
                     </p>
                   )}
 
-                  {/* Przelicznik porcji */}
                   <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-3">
                     <span className="text-xs font-bold text-slate-700">Przelicz porcje:</span>
                     <div className="flex items-center gap-2">
@@ -3473,26 +3431,22 @@
                     </div>
                   </div>
 
-                  {/* Składniki */}
-                  {selectedRecipe.ingredients?.length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
-                        Składniki
-                      </h4>
-                      <div className="bg-slate-50 rounded-2xl p-3 divide-y divide-slate-200/70">
-                        {selectedRecipe.ingredients.map((ing, i) => (
-                          <div key={i} className="py-2 flex items-center justify-between gap-2 text-sm">
-                            <span className="text-slate-800 font-medium">{ing.name}</span>
-                            <span className="font-bold text-indigo-700 shrink-0">
-                              {formatAmount((parseSafeNumber(ing.amount, 1) || 1) * portionMultiplier)} {ing.unit}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
+                      Składniki
+                    </h4>
+                    <div className="bg-slate-50 rounded-2xl p-3 divide-y divide-slate-200/70">
+                      {(selectedRecipe.ingredients || []).map((ing, i) => (
+                        <div key={i} className="py-2 flex items-center justify-between gap-2 text-sm">
+                          <span className="text-slate-800 font-medium">{ing.name}</span>
+                          <span className="font-bold text-indigo-700 shrink-0">
+                            {formatAmount((parseSafeNumber(ing.amount, 1) || 1) * portionMultiplier)} {ing.unit}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Kroki */}
                   <div>
                     <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
                       Przygotowanie (kliknij aby odhaczyć)
@@ -3525,7 +3479,6 @@
                   </div>
                 </div>
 
-                {/* Stopka z akcjami */}
                 <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center gap-2 safe-bottom">
                   {!String(selectedRecipe.id || '').startsWith('starter-') && !selectedRecipe.starterId && (
                     <button
@@ -3543,15 +3496,13 @@
                     <Icon name="calendarPlus" className="w-4 h-4" />
                     Zaplanuj
                   </button>
-                  {selectedRecipe.ingredients?.length > 0 && (
-                    <button
-                      onClick={() => openRecipeIngredientsModal(selectedRecipe, portionMultiplier)}
-                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99]"
-                    >
-                      <Icon name="cart" className="w-4 h-4" />
-                      Na zakupy
-                    </button>
-                  )}
+                  <button
+                    onClick={() => openRecipeIngredientsModal(selectedRecipe, portionMultiplier)}
+                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99]"
+                  >
+                    <Icon name="cart" className="w-4 h-4" />
+                    Na zakupy
+                  </button>
                 </div>
               </div>
             </div>
@@ -3675,7 +3626,6 @@
             </div>
           )}
 
-          {/* MODALE POMOCNICZE */}
           {showAddChoreModal && (
             <AddChoreModal
               onClose={() => setShowAddChoreModal(false)}
@@ -3751,7 +3701,7 @@
     }
 
     // ============================================================================
-    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU (BEZ PUNKTACJI)
+    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU
     // ============================================================================
     function AddChoreModal({ onAdd, onClose }) {
       const [title, setTitle] = useState('');
@@ -3819,7 +3769,7 @@
     // MODAL: TINDER NA OBIADY (WSPÓLNE GŁOSOWANIE)
     // ============================================================================
     function TinderMatchModal({ recipes, activeProfile, user1Name, user2Name, onVote, onReset, onSchedule, onClose }) {
-      const [view, setView] = useState('swipe'); // swipe | matches
+      const [view, setView] = useState('swipe');
 
       const matches = useMemo(
         () => recipes.filter((r) => r.votes?.user1 === 'yes' && r.votes?.user2 === 'yes'),
@@ -3969,7 +3919,6 @@
       const [loading, setLoading] = useState(false);
       const [errorMsg, setErrorMsg] = useState('');
 
-      // Formularz własny
       const [title, setTitle] = useState('');
       const [emoji, setEmoji] = useState('🍽️');
       const [prepTime, setPrepTime] = useState('25');
@@ -3978,7 +3927,6 @@
       const [ingredients, setIngredients] = useState([{ name: '', amount: '1', unit: 'szt.' }]);
       const [stepsText, setStepsText] = useState('');
 
-      // Zrzut ekranu i AI inputy
       const [imagePreview, setImagePreview] = useState('');
       const [imageBase64, setImageBase64] = useState('');
       const [imageMime, setImageMime] = useState('image/jpeg');
@@ -4174,7 +4122,6 @@
               ].map((m) => (
                 <button
                   key={m.id}
-                  type="button"
                   onClick={() => { setMode(m.id); setErrorMsg(''); }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap ${
                     mode === m.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
@@ -4357,9 +4304,9 @@
                       </div>
 
                       {!geminiApiKey && (
-                        <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2">
-                          <p className="text-[11px] font-semibold text-amber-900">
-                            ✨ Chcesz, żeby AI automatycznie przepisało składniki ze zdjęcia? Wklej darmowy klucz Google AI Studio:
+                        <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-2">
+                          <p className="text-[11px] text-indigo-900">
+                            Chcesz, żeby AI automatycznie przepisało składniki na listę zakupów? Wklej darmowy klucz z <strong>aistudio.google.com</strong> (opcjonalnie):
                           </p>
                           <div className="flex gap-1.5">
                             <input
@@ -4367,7 +4314,7 @@
                               value={inlineKeyInput}
                               onChange={(e) => setInlineKeyInput(e.target.value)}
                               placeholder="AIzaSy..."
-                              className="flex-1 bg-white border border-amber-200 rounded-xl px-2.5 py-1.5 text-xs"
+                              className="flex-1 bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5 text-xs"
                             />
                             <button
                               type="button"
@@ -4763,7 +4710,7 @@
     }
 
     // ============================================================================
-    // MODAL: USTAWIENIA + KREATOR SYNCHRONIZACJI 2 iPHONE'ÓW (BEZ KOMPUTERA!)
+    // MODAL: USTAWIENIA + KREATOR SYNCHRONIZACJI 2 iPHONE'ÓW
     // ============================================================================
     function SettingsModal({
       household,
@@ -4897,7 +4844,6 @@
             </div>
 
             <div className="p-4 overflow-y-auto space-y-5 flex-1 safe-bottom">
-              {/* SEKCJA 1: SYNCHRONIZACJA 2 IPHONE'ÓW */}
               <div className="bg-indigo-50/70 border border-indigo-200 rounded-3xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-extrabold text-indigo-950 flex items-center gap-1.5">
@@ -4937,7 +4883,7 @@
                 ) : (
                   <div className="space-y-2.5">
                     <p className="text-xs text-indigo-900 leading-relaxed">
-                      Wklej tutaj kod <code>firebaseConfig</code> skopiowany ze strony Firebase (nie musisz nic formatować ani edytować w kodzie strony):
+                      Wklej tutaj kod <code>firebaseConfig</code> skopiowany ze strony Firebase:
                     </p>
                     <textarea
                       rows="4"
@@ -4958,7 +4904,6 @@
                 )}
               </div>
 
-              {/* SEKCJA 2: WASZ DOM I PROFIL */}
               <form onSubmit={handleSaveProfile} className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Wasz dom i profile
@@ -5025,7 +4970,6 @@
                 </button>
               </form>
 
-              {/* SEKCJA 3: OPCJONALNE AI */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Import przepisów AI (opcjonalnie, 0 zł)
@@ -5051,7 +4995,6 @@
                 </div>
               </div>
 
-              {/* SEKCJA 4: AKTUALIZACJA APLIKACJI (iOS PWA CACHE) */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Aktualizacja aplikacji na iPhonie
