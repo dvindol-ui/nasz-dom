@@ -53,9 +53,16 @@
     const { useState, useEffect, useMemo, useRef } = React;
 
     // ============================================================================
-    // OPCJONALNA KONFIGURACJA (możesz też wkleić ją wygodnie w Ustawieniach apki!)
+    // KONFIGURACJA FIREBASE (wbudowana na stałe dla projektu nasz-dom-39f2a)
     // ============================================================================
-    const DEFAULT_FIREBASE_CONFIG = null;
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyClRGN3R62ISjufRhimiK3Axab8xCKbCRQ",
+      authDomain: "nasz-dom-39f2a.firebaseapp.com",
+      projectId: "nasz-dom-39f2a",
+      storageBucket: "nasz-dom-39f2a.firebasestorage.app",
+      messagingSenderId: "240466183874",
+      appId: "1:240466183874:web:ee1030572bba53e4dadd5b"
+    };
     const APP_ID = 'nasz-dom-v1';
 
     // ============================================================================
@@ -88,7 +95,6 @@
       cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
       camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
       fileText: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
-      trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
       loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
     };
 
@@ -148,7 +154,15 @@
       { id: 'sun', short: 'Nd', label: 'Niedziela', jsDay: 0 }
     ];
 
+    const MEAL_SLOTS = [
+      { id: 'breakfast', label: 'Śniadanie', short: 'Śn.', emoji: '🍳', badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+      { id: 'lunch', label: 'Obiad', short: 'Ob.', emoji: '🍽️', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+      { id: 'dinner', label: 'Kolacja', short: 'Kol.', emoji: '🌙', badge: 'bg-violet-50 text-violet-700 border-violet-200' }
+    ];
+
     const RECIPE_TAGS = [
+      { id: 'sniadanie', label: 'Śniadanie', emoji: '🍳' },
+      { id: 'kolacja', label: 'Kolacja', emoji: '🌙' },
       { id: 'szybkie', label: 'Szybkie', emoji: '⚡' },
       { id: 'makarony', label: 'Makarony', emoji: '🍝' },
       { id: 'miesne', label: 'Mięsne', emoji: '🍗' },
@@ -158,11 +172,11 @@
     ];
 
     const STARTER_CHORES = [
-      { id: 'starter-chore-1', title: 'Wyrzucenie śmieci i segregacja', points: 10, frequency: 'co_2_dni', assignedTo: 'both' },
-      { id: 'starter-chore-2', title: 'Rozładowanie zmywarki', points: 10, frequency: 'codziennie', assignedTo: 'both' },
-      { id: 'starter-chore-3', title: 'Odkurzanie mieszkania', points: 20, frequency: 'co_tydzien', assignedTo: 'both' },
-      { id: 'starter-chore-4', title: 'Pranie i rozwieszenie', points: 15, frequency: 'co_2_dni', assignedTo: 'both' },
-      { id: 'starter-chore-5', title: 'Sprzątanie łazienki', points: 25, frequency: 'co_tydzien', assignedTo: 'both' }
+      { id: 'starter-chore-1', title: 'Wyrzucenie śmieci i segregacja', frequency: 'co_2_dni', assignedTo: 'both' },
+      { id: 'starter-chore-2', title: 'Rozładowanie zmywarki', frequency: 'codziennie', assignedTo: 'both' },
+      { id: 'starter-chore-3', title: 'Odkurzanie mieszkania', frequency: 'co_tydzien', assignedTo: 'both' },
+      { id: 'starter-chore-4', title: 'Pranie i rozwieszenie', frequency: 'co_2_dni', assignedTo: 'both' },
+      { id: 'starter-chore-5', title: 'Sprzątanie łazienki', frequency: 'co_tydzien', assignedTo: 'both' }
     ];
 
     const STARTER_RECIPES = [
@@ -316,6 +330,844 @@
           'Smaż nieduże placki na rozgrzanym oleju po ok. 3 minuty z każdej strony.',
           'Podawaj gorące z zimnym jogurtem greckim i koperkiem.'
         ]
+      },
+      {
+        id: 'starter-7',
+        title: 'Szakszuka z fetą i świeżym pieczywem',
+        emoji: '🍳',
+        prepTime: 15,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'szybkie', 'vege'],
+        source: 'Baza startowa',
+        note: 'Idealna na ciepłe śniadanie w weekend lub szybką kolację z patelni.',
+        ingredients: [
+          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
+          { name: 'Ser feta', amount: 80, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Pieczywo lub bagietka', amount: 1, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Czosnek', amount: 1, unit: 'ząbek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Podsmaż posiekaną cebulę i czosnek na patelni.',
+          'Wlej pomidory z puszki, dopraw solą, pieprzem i słodką papryką, duś 5 minut.',
+          'Zrób wgłębienia w sosie, wbij jajka, posyp pokruszoną fetą i przykryj na 4 minuty aż białka się zetną.',
+          'Podawaj prosto z patelni z chrupiącym pieczywem.'
+        ]
+      },
+      {
+        id: 'starter-8',
+        title: 'Owsianka z bananem i masłem orzechowym',
+        emoji: '🥣',
+        prepTime: 10,
+        servings: 2,
+        tags: ['sniadanie', 'szybkie', 'vege'],
+        source: 'Baza startowa',
+        note: 'Syte, szybkie śniadanie w 10 minut.',
+        ingredients: [
+          { name: 'Płatki owsiane', amount: 100, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Mleko lub napój owsiany', amount: 400, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Banan', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Masło orzechowe', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false }
+        ],
+        steps: [
+          'Zagotuj mleko z płatkami owsianymi i gotuj na małym ogniu ok. 5 minut, mieszając.',
+          'Przełóż do misek, dodaj pokrojone banany i po łyżce masła orzechowego.'
+        ]
+      },
+      {
+        id: 'starter-9',
+        title: 'Tosty z awokado, jajkiem i pomidorkami',
+        emoji: '🥑',
+        prepTime: 12,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'szybkie', 'vege'],
+        source: 'Baza startowa',
+        note: 'Chrupiące grzanki na śniadanie albo lekką kolację.',
+        ingredients: [
+          { name: 'Chleb na zakwasie lub tostowy', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Awokado', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Pomidorki koktajlowe', amount: 150, unit: 'g', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Opiecz kromki chleba w tosterze lub na suchej patelni.',
+          'Rozgnieć awokado widelcem z solą, pieprzem i odrobiną cytryny.',
+          'Usmaż jajka sadzone lub ugotuj na miękko, ułóż na grzankach z awokado i pokrojonymi pomidorkami.'
+        ]
+      },
+      {
+        id: 'starter-10',
+        title: 'Kolacyjne tosty z szynką, serem i pieczarkami',
+        emoji: '🥪',
+        prepTime: 15,
+        servings: 2,
+        tags: ['kolacja', 'szybkie', 'miesne'],
+        source: 'Baza startowa',
+        note: 'Domowe zapiekanki/tosty na ciepłą kolację.',
+        ingredients: [
+          { name: 'Chleb tostowy lub bagietka', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Ser żółty', amount: 120, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Szynka', amount: 100, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Pieczarki', amount: 150, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Ketchup lub sos czosnkowy', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Pokrój pieczarki w plasterki i krótko podsmaż na patelni.',
+          'Ułóż na pieczywie szynkę, pieczarki i ser, a potem zapiecz w opiekaczu lub piekarniku aż ser się rozpuści.'
+        ]
+      },
+      {
+        id: 'starter-11',
+        title: 'Maślana jajecznica ze szczypiorkiem i pomidorami',
+        emoji: '🍳',
+        prepTime: 10,
+        servings: 2,
+        tags: ['sniadanie', 'szybkie', 'vege', 'klasyki'],
+        source: 'Kuchnia domowa',
+        note: 'Kremowa jajecznica smażona powoli na maśle — bez wysuszenia.',
+        ingredients: [
+          { name: 'Jajka', amount: 5, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
+          { name: 'Szczypiorek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Pomidor malinowy', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Chleb lub bułki', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Sól i pieprz', amount: 1, unit: 'szczypta', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Rozpuść masło na patelni na małym ogniu.',
+          'Wbij jajka, lekko posól i mieszaj delikatnie szpatułką aż zetną się na kremowo.',
+          'Posyp posiekanym szczypiorkiem i podawaj z pokrojonym pomidorem i świeżym pieczywem.'
+        ]
+      },
+      {
+        id: 'starter-12',
+        title: 'Klasyczne naleśniki z twarożkiem i owocami',
+        emoji: '🥞',
+        prepTime: 25,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'klasyki', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Cienkie, elastyczne naleśniki z dodatkiem wody gazowanej.',
+        ingredients: [
+          { name: 'Mąka pszenna', amount: 150, unit: 'g', category: 'sypkie', isPantry: true },
+          { name: 'Mleko', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Woda gazowana', amount: 100, unit: 'ml', category: 'inne', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Twaróg półtłusty', amount: 250, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Jogurt naturalny', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false },
+          { name: 'Owoce sezonowe lub dżem', amount: 150, unit: 'g', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Zmiksuj mąkę, mleko, wodę gazowaną, jajka, szczyptę soli i łyżkę oleju na gładkie ciasto; odstaw na 10 minut.',
+          'Smaż cienkie naleśniki na dobrze rozgrzanej patelni po ok. minucie z każdej strony.',
+          'Rozgnieć twaróg z jogurtem i odrobiną miodu lub cukru waniliowego, posmaruj naleśniki i podawaj z owocami.'
+        ]
+      },
+      {
+        id: 'starter-13',
+        title: 'Puszyste racuchy z jabłkami i cynamonem',
+        emoji: '🍎',
+        prepTime: 25,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'klasyki', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Szybkie racuchy na maślance lub jogurcie, bez czekania na drożdże.',
+        ingredients: [
+          { name: 'Jabłka', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Jogurt naturalny lub maślanka', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Mąka pszenna', amount: 180, unit: 'g', category: 'sypkie', isPantry: true },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Proszek do pieczenia', amount: 1, unit: 'łyżeczka', category: 'przyprawy', isPantry: true },
+          { name: 'Cynamon i cukier puder', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Wymieszaj jogurt z jajkiem, mąką, proszkiem do pieczenia i szczyptą cynamonu na gęste ciasto.',
+          'Obierz jabłka, pokrój w drobną kostkę lub zetrzyj na grubych oczkach i wmieszaj do ciasta.',
+          'Smaż placuszki na średnim ogniu z obu stron na złoty kolor i oprósz cukrem pudrem.'
+        ]
+      },
+      {
+        id: 'starter-14',
+        title: 'Omlet z szynką, serem i szpinakiem',
+        emoji: '🥚',
+        prepTime: 12,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Białkowe śniadanie lub kolacja w 10 minut.',
+        ingredients: [
+          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Szynka', amount: 80, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Ser żółty lub mozzarella', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Szpinak baby', amount: 50, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Pomidorki koktajlowe', amount: 100, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false }
+        ],
+        steps: [
+          'Roztrzep jajka z 2 łyżkami wody lub mleka, solą i pieprzem.',
+          'Podsmaż krótko pokrojoną szynkę i szpinak na maśle, wlej masę jajeczną i przykryj pokrywką na 3 minuty.',
+          'Posyp serem, złóż omlet na pół i podawaj z pomidorkami koktajlowymi.'
+        ]
+      },
+      {
+        id: 'starter-15',
+        title: 'Pasta jajeczna ze szczypiorkiem i rzodkiewką',
+        emoji: '🥖',
+        prepTime: 15,
+        servings: 2,
+        tags: ['sniadanie', 'kolacja', 'szybkie', 'vege', 'klasyki'],
+        source: 'Kuchnia domowa',
+        note: 'Najlepsza na chrupiącą bułkę albo świeży chleb na zakwasie.',
+        ingredients: [
+          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Majonez', amount: 1.5, unit: 'łyżki', category: 'przyprawy', isPantry: false },
+          { name: 'Jogurt grecki', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
+          { name: 'Musztarda', amount: 0.5, unit: 'łyżeczki', category: 'przyprawy', isPantry: true },
+          { name: 'Szczypiorek', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Rzodkiewka', amount: 6, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Pieczywo', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false }
+        ],
+        steps: [
+          'Ugotuj jajka na twardo (ok. 8–9 minut), ostudź w zimnej wodzie i obierz.',
+          'Rozgnieć jajka widelcem, dodaj majonez, jogurt, musztardę, posiekany szczypiorek i drobną kostkę rzodkiewki.',
+          'Dopraw solą i świeżo mielonym pieprzem; podawaj na świeżym pieczywie.'
+        ]
+      },
+      {
+        id: 'starter-16',
+        title: 'Placuszki bananowo-owsiane bez cukru',
+        emoji: '🍌',
+        prepTime: 15,
+        servings: 2,
+        tags: ['sniadanie', 'szybkie', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Tylko 3 bazowe składniki — naturalnie słodkie i sycące.',
+        ingredients: [
+          { name: 'Dojrzałe banany', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Płatki owsiane', amount: 80, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Jogurt naturalny', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Borówki lub maliny', amount: 100, unit: 'g', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Zblenduj banany, jajka i płatki owsiane na jednolitą masę (lub rozgnieć banany widelcem z płatkami błyskawicznymi).',
+          'Odstaw na 5 minut, aby płatki lekko napęczniały.',
+          'Smaż małe placuszki na lekko natłuszczonej patelni po ok. 2 minuty z każdej strony; podawaj z jogurtem i owocami.'
+        ]
+      },
+      {
+        id: 'starter-17',
+        title: 'Tosty francuskie z cynamonem i owocami',
+        emoji: '🍞',
+        prepTime: 12,
+        servings: 2,
+        tags: ['sniadanie', 'szybkie', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Świetny sposób na wykorzystanie wczorajszej chałki lub chleba tostowego.',
+        ingredients: [
+          { name: 'Chałka lub chleb tostowy', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Mleko', amount: 80, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
+          { name: 'Cynamon', amount: 0.5, unit: 'łyżeczki', category: 'przyprawy', isPantry: true },
+          { name: 'Syrop klonowy lub miód', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false }
+        ],
+        steps: [
+          'Roztrzep jajka z mlekiem i cynamonem w głębokim talerzu.',
+          'Zanurzaj kromki pieczywa z obu stron i smaż na maśle na średnim ogniu na złoto.',
+          'Podawaj ciepłe z miodem, jogurtem lub ulubionymi owocami.'
+        ]
+      },
+      {
+        id: 'starter-18',
+        title: 'Domowe zapiekanki z bagietki z pieczarkami',
+        emoji: '🥖',
+        prepTime: 20,
+        servings: 2,
+        tags: ['kolacja', 'szybkie', 'klasyki', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Chrupiące jak z budki, z podsmażonymi pieczarkami i ciągnącym serem.',
+        ingredients: [
+          { name: 'Bagietka', amount: 1, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Pieczarki', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Ser żółty tarty', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Szczypiorek', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Ketchup', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Podsmaż drobno posiekaną cebulę i starte lub pokrojone pieczarki aż odparuje woda; dopraw solą i pieprzem.',
+          'Przekrój bagietkę wzdłuż na pół, nałóż farsz pieczarkowy i obficie posyp startym serem.',
+          'Zapiekaj ok. 8–10 minut w 200°C do rozpuszczenia i zarumienienia sera; podawaj z ketchupem i szczypiorkiem.'
+        ]
+      },
+      {
+        id: 'starter-19',
+        title: 'Chrupiąca quesadilla z kurczakiem i kukurydzą',
+        emoji: '🌮',
+        prepTime: 20,
+        servings: 2,
+        tags: ['kolacja', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Z jednej patelni, pokrojona w trójkąty — świetna na wieczór filmowy.',
+        ingredients: [
+          { name: 'Placki tortilla', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Pierś z kurczaka', amount: 250, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Ser żółty lub cheddar tarty', amount: 120, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Kukurydza konserwowa', amount: 4, unit: 'łyżki', category: 'warzywa', isPantry: false },
+          { name: 'Papryka czerwona', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Jogurt grecki lub śmietana', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false }
+        ],
+        steps: [
+          'Pokrój kurczaka w drobną kostkę, dopraw papryką słodką, czosnkiem, solą i usmaż na patelni.',
+          'Na połowie każdej tortilli ułóż ser, kurczaka, kukurydzę, pokrojoną paprykę i znów trochę sera; złóż na pół.',
+          'Podpiecz na suchej patelni po 2 minuty z każdej strony, aż tortilla będzie chrupiąca a ser się rozpuści.'
+        ]
+      },
+      {
+        id: 'starter-20',
+        title: 'Sałatka grecka z fetą i oliwkami',
+        emoji: '🥗',
+        prepTime: 10,
+        servings: 2,
+        tags: ['kolacja', 'szybkie', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Lekka, chrupiąca kolacja — najlepiej smakuje z oregano i dobrą oliwą.',
+        ingredients: [
+          { name: 'Pomidor lub pomidorki koktajlowe', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Ogórek świeży', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Ser feta', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Czerwona cebula', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Oliwki czarne', amount: 60, unit: 'g', category: 'przyprawy', isPantry: false },
+          { name: 'Oliwa z oliwek i oregano', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Pokrój pomidory i ogórka w większą kostkę, a czerwoną cebulę w cienkie piórka.',
+          'Przełóż do miski, dodaj oliwki oraz pokrojoną w kostkę fetę.',
+          'Skrop oliwą z oliwek, posyp suszonym oregano i delikatnie wymieszaj.'
+        ]
+      },
+      {
+        id: 'starter-21',
+        title: 'Sałatka Cezar z kurczakiem i grzankami',
+        emoji: '🥬',
+        prepTime: 20,
+        servings: 2,
+        tags: ['kolacja', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Sycąca kolacja z chrupiącą sałatą rzymską i domowym sosem czosnkowym.',
+        ingredients: [
+          { name: 'Sałata rzymska', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Pierś z kurczaka', amount: 250, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Parmezan', amount: 40, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Chleb lub bułka na grzanki', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Jogurt grecki', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false },
+          { name: 'Majonez', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: false },
+          { name: 'Czosnek', amount: 1, unit: 'ząbek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Kurczaka dopraw solą, pieprzem i ziołami, usmaż na złoto i pokrój w plastry.',
+          'Pokrój pieczywo w kostkę i podsmaż na patelni z odrobiną oliwy na chrupiące grzanki.',
+          'Wymieszaj jogurt, majonez, przeciśnięty czosnek, sok z cytryny i łyżkę startego parmezanu.',
+          'Połącz porwaną sałatę z sosem, ułóż kurczaka, grzanki i płatki parmezanu.'
+        ]
+      },
+      {
+        id: 'starter-22',
+        title: 'Pasta z tuńczyka z jajkiem i ogórkiem kiszonym',
+        emoji: '🐟',
+        prepTime: 15,
+        servings: 2,
+        tags: ['kolacja', 'sniadanie', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Klasyczna pasta kanapkowa gotowa w kwadrans.',
+        ingredients: [
+          { name: 'Tuńczyk w puszce', amount: 1, unit: 'puszka', category: 'mieso', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Ogórki kiszone', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Serek śmietankowy lub majonez', amount: 2, unit: 'łyżki', category: 'nabial', isPantry: false },
+          { name: 'Szczypiorek lub koperek', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Pieczywo', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false }
+        ],
+        steps: [
+          'Ugotuj jajka na twardo, ostudź i posiekaj w drobną kostkę.',
+          'Odsącz tuńczyka, dodaj drobno pokrojone ogórki kiszone, jajka, serek/majonez i zieleninę.',
+          'Wymieszaj, dopraw pieprzem i solą do smaku.'
+        ]
+      },
+      {
+        id: 'starter-23',
+        title: 'Kotlet schabowy z ziemniakami i mizerią',
+        emoji: '🥩',
+        prepTime: 40,
+        servings: 2,
+        tags: ['klasyki', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Polski klasyk niedzielny — chrupiąca panierka i kremowa mizeria z koperkiem.',
+        ingredients: [
+          { name: 'Schab bez kości', amount: 300, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Ziemniaki', amount: 500, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Ogórek zielony', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Śmietana 18% lub jogurt', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Bułka tarta', amount: 80, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Mąka pszenna', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: true },
+          { name: 'Koperek świeży', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Obierz ziemniaki i wstaw do gotowania w osolonej wodzie.',
+          'Plastry schabu rozbij cienko, dopraw solą i pieprzem, obtocz kolejno w mące, roztrzepanym jajku i bułce tartej.',
+          'Smaż kotlety na dobrze rozgrzanym tłuszczu po ok. 3–4 minuty z każdej strony na złoto.',
+          'Ogórki pokrój w cienkie plasterki, wymieszaj ze śmietaną, koperkiem, szczyptą soli i pieprzu.'
+        ]
+      },
+      {
+        id: 'starter-24',
+        title: 'Domowy rosół z kurczaka z makaronem',
+        emoji: '🍲',
+        prepTime: 90,
+        servings: 4,
+        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Baza na niedzielę i idealny start pod poniedziałkową pomidorową!',
+        ingredients: [
+          { name: 'Ćwiartki lub porcja rosołowa z kurczaka', amount: 800, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Włoszczyzna (marchew, pietruszka, seler, por)', amount: 1, unit: 'opak.', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Makaron nitki', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Natka pietruszki', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Liść laurowy i ziele angielskie', amount: 3, unit: 'szt.', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Zalej umyte mięso zimną wodą (ok. 2,5 l) i powoli doprowadź do delikatnego wrzenia, zbierając szumowiny.',
+          'Dodaj obrane warzywa, opaloną przekrojoną cebulę, liść laurowy, ziele angielskie i kilka ziaren pieprzu.',
+          'Gotuj na minimalnym ogniu pod uchyloną pokrywką ok. 1,5 godziny, aż wywar będzie klarowny i aromatyczny; dopraw solą.',
+          'Podawaj z ugotowanym makaronem nitki, plasterkami marchewki i świeżą natką pietruszki.'
+        ]
+      },
+      {
+        id: 'starter-25',
+        title: 'Zupa pomidorowa z ryżem lub makaronem',
+        emoji: '🍅',
+        prepTime: 30,
+        servings: 4,
+        tags: ['klasyki', 'jednogarnkowe', 'szybkie'],
+        source: 'Kuchnia domowa',
+        note: 'Szybka, aksamitna pomidorowa — na rosole albo bulionie warzywnym.',
+        ingredients: [
+          { name: 'Bulion warzywny lub rosół', amount: 1200, unit: 'ml', category: 'przyprawy', isPantry: false },
+          { name: 'Passata pomidorowa', amount: 500, unit: 'ml', category: 'przyprawy', isPantry: false },
+          { name: 'Śmietanka 18% lub 30%', amount: 100, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Ryż lub makaron świderki', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
+          { name: 'Bazylia lub natka pietruszki', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Podgrzej bulion, wlej passatę pomidorową, dodaj łyżkę masła i gotuj na małym ogniu przez 15 minut.',
+          'W osobnym garnku ugotuj ryż lub ulubiony makaron.',
+          'Zahartuj śmietankę kilkoma łyżkami gorącej zupy, wlej do garnka i dopraw solą, pieprzem oraz szczyptą cukru.'
+        ]
+      },
+      {
+        id: 'starter-26',
+        title: 'Żurek z białą kiełbasą i jajkiem',
+        emoji: '🥣',
+        prepTime: 45,
+        servings: 4,
+        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Aromatyczny żurek z majerankiem i chrzanem — idealny na chłodniejszy dzień.',
+        ingredients: [
+          { name: 'Zakwas na żurek', amount: 500, unit: 'ml', category: 'przyprawy', isPantry: false },
+          { name: 'Biała kiełbasa surowa lub parzona', amount: 400, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Boczek wędzony', amount: 100, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Ziemniaki', amount: 400, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Śmietana 18%', amount: 100, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Czosnek i majeranek', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Zagotuj 1,5 l wody z liściem laurowym, zielem angielskim, podsmażonym boczkiem oraz pokrojonymi w kostkę ziemniakami.',
+          'Dodaj białą kiełbasę i gotuj ok. 20 minut, aż ziemniaki będą miękkie; wyjmij kiełbasę i pokrój w plastry.',
+          'Wlej dobrze wymieszany zakwas, dodaj przeciśnięty czosnek, majeranek i łyżeczkę chrzanu; gotuj 5 minut.',
+          'Zabiel zahartowaną śmietaną i podawaj z połówkami ugotowanych na twardo jajek.'
+        ]
+      },
+      {
+        id: 'starter-27',
+        title: 'Kotlety mielone z ziemniakami i buraczkami',
+        emoji: '🍖',
+        prepTime: 40,
+        servings: 4,
+        tags: ['klasyki', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Soczyste kotlety mielone z namoczoną bułką i podsmażoną cebulką.',
+        ingredients: [
+          { name: 'Mięso mielone wieprzowe lub z łopatki', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Bułka kajzerka', amount: 1, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Bułka tarta', amount: 60, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Ziemniaki', amount: 600, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Buraczki tarte w słoiku', amount: 1, unit: 'opak.', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Namocz kajzerkę w wodzie lub mleku, odciśnij; cebulę drobno posiekaj i zeszklij na patelni.',
+          'Wyrób dokładnie mięso z bułką, cebulą, jajkiem, solą, pieprzem i majerankiem.',
+          'Uformuj owalne kotlety, obtocz w bułce tartej i smaż na średnim ogniu po ok. 4–5 minut z każdej strony.',
+          'Podawaj z ugotowanymi ziemniakami i podgrzanymi buraczkami.'
+        ]
+      },
+      {
+        id: 'starter-28',
+        title: 'Chrupiące placki ziemniaczane ze śmietaną',
+        emoji: '🥔',
+        prepTime: 35,
+        servings: 2,
+        tags: ['klasyki', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Złociste, chrupiące po brzegach — świetne ze śmietaną lub sosem grzybowym.',
+        ingredients: [
+          { name: 'Ziemniaki', amount: 700, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Mąka pszenna', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: true },
+          { name: 'Śmietana 18%', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Olej do smażenia', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Zetrzyj ziemniaki i cebulę na drobnych oczkach tarki, odciśnij nadmiar wody (zachowując skrobię z dna miski).',
+          'Wymieszaj masę z jajkiem, mąką, solą i szczyptą pieprzu.',
+          'Nakładaj cienkie porcje na dobrze rozgrzany olej i smaż na rumiano z obu stron; odsącz na ręczniku papierowym.'
+        ]
+      },
+      {
+        id: 'starter-29',
+        title: 'Leniwe pierogi z masłem i bułką tartą',
+        emoji: '🥟',
+        prepTime: 25,
+        servings: 2,
+        tags: ['klasyki', 'vege', 'szybkie'],
+        source: 'Kuchnia domowa',
+        note: 'Delikatne kluseczki twarogowe — pyszne na słodko z cynamonem i masłem.',
+        ingredients: [
+          { name: 'Twaróg półtłusty', amount: 250, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Mąka pszenna', amount: 100, unit: 'g', category: 'sypkie', isPantry: true },
+          { name: 'Masło', amount: 40, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Bułka tarta', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: false }
+        ],
+        steps: [
+          'Rozgnieć twaróg widelcem, dodaj jajko, szczyptę soli i mąkę; zagnieć krótko miękkie ciasto.',
+          'Uformuj wałeczki na podsypanym blacie, lekko spłaszcz i pokrój ukośnie na romby.',
+          'Gotuj w osolonej wodzie ok. 2 minuty od wypłynięcia na powierzchnię.',
+          'Podawaj polane zrumienionym masłem z bułką tartą i opcjonalnie odrobiną cukru z cynamonem.'
+        ]
+      },
+      {
+        id: 'starter-30',
+        title: 'Leczo z cukinią, papryką i kiełbasą',
+        emoji: '🥘',
+        prepTime: 35,
+        servings: 4,
+        tags: ['klasyki', 'jednogarnkowe', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Kolorowe danie z jednego garnka na 2 dni — najlepsze ze świeżą bułką.',
+        ingredients: [
+          { name: 'Kiełbasa śląska lub podwawelska', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Cukinia', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Papryka czerwona i żółta', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
+          { name: 'Pieczywo', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
+          { name: 'Papryka słodka i ostra', amount: 2, unit: 'łyżeczki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Podsmaż w dużym garnku pokrojoną w półplasterki kiełbasę oraz cebulę.',
+          'Dodaj pokrojoną paprykę i cukinię, posyp przyprawą z papryki i smaż 5 minut.',
+          'Wlej pomidory z puszki, przykryj i duś ok. 20 minut aż warzywa zmiękną; dopraw solą i pieprzem.'
+        ]
+      },
+      {
+        id: 'starter-31',
+        title: 'Fasolka po bretońsku z kiełbasą i boczkiem',
+        emoji: '🫘',
+        prepTime: 35,
+        servings: 4,
+        tags: ['klasyki', 'jednogarnkowe', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Szybka wersja z fasoli ze słoika lub puszki — bez moczenia przez noc.',
+        ingredients: [
+          { name: 'Biała fasola Jaś (puszka lub słoik)', amount: 2, unit: 'opak.', category: 'sypkie', isPantry: false },
+          { name: 'Kiełbasa wędzona', amount: 300, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Boczek wędzony', amount: 120, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Passata pomidorowa', amount: 400, unit: 'ml', category: 'przyprawy', isPantry: false },
+          { name: 'Majeranek i papryka słodka', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Wytop w garnku pokrojony w kostkę boczek, dorzuć kiełbasę oraz posiekaną cebulę i zrumień.',
+          'Wlej passatę pomidorową, dodaj pół szklanki wody, liść laurowy, ziele angielskie, paprykę i majeranek.',
+          'Wsyp odsączoną fasolę i duś 15 minut na małym ogniu aż sos zgęstnieje.'
+        ]
+      },
+      {
+        id: 'starter-32',
+        title: 'Klasyczne spaghetti carbonara',
+        emoji: '🍝',
+        prepTime: 20,
+        servings: 2,
+        tags: ['makarony', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Prawdziwa kremowa carbonara z żółtkami i parmezanem — bez śmietany.',
+        ingredients: [
+          { name: 'Makaron spaghetti', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Boczek wędzony lub pancetta', amount: 150, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Jajka', amount: 3, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Parmezan lub pecorino', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Pieprz czarny świeżo mielony', amount: 1, unit: 'łyżeczka', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Ugotuj spaghetti al dente (zachowaj pół szklanki wody z gotowania makaronu).',
+          'Podsmaż pokrojony w kostkę boczek na chrupko i zdejmij patelnię z ognia.',
+          'Wymieszaj w miseczce 1 całe jajko, 2 żółtka, starty parmezan i sporo pieprzu.',
+          'Wrzuć gorący makaron na patelnię z boczkiem, wlej masę jajeczną i odrobinę wody z makaronu, energicznie mieszając (poza ogniem!) do uzyskania kremowego sosu.'
+        ]
+      },
+      {
+        id: 'starter-33',
+        title: 'Makaron z zielonym pesto i pomidorkami',
+        emoji: '🌿',
+        prepTime: 15,
+        servings: 2,
+        tags: ['makarony', 'szybkie', 'vege'],
+        source: 'Kuchnia domowa',
+        note: 'Obiad w 12 minut, kiedy nie chce się długo stać przy kuchni.',
+        ingredients: [
+          { name: 'Makaron fusilli lub penne', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Pesto bazyliowe', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: false },
+          { name: 'Pomidorki koktajlowe', amount: 200, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Mozzarella kulki mini', amount: 125, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Parmezan', amount: 30, unit: 'g', category: 'nabial', isPantry: false }
+        ],
+        steps: [
+          'Ugotuj makaron al dente i zachowaj 3 łyżki wody z gotowania.',
+          'Wymieszaj gorący makaron z pesto i wodą z gotowania, aby sos dokładnie oblepił kluski.',
+          'Dorzuć przekrojone na pół pomidorki, mini mozzarellę i posyp parmezanem.'
+        ]
+      },
+      {
+        id: 'starter-34',
+        title: 'Makaron z łososiem w sosie śmietanowo-koperkowym',
+        emoji: '🐟',
+        prepTime: 20,
+        servings: 2,
+        tags: ['makarony', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Wykwintny, a bajecznie prosty makaron z wędzonym lub świeżym łososiem.',
+        ingredients: [
+          { name: 'Makaron tagliatelle', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Łosoś świeży lub wędzony', amount: 200, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Śmietanka 30%', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Koperek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Cytryna', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Czosnek', amount: 1, unit: 'ząbek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Ugotuj makaron al dente.',
+          'Na patelni podsmaż krótko czosnek (i kawałki świeżego łososia, jeśli używasz surowego), wlej śmietankę i redukuj 3 minuty.',
+          'Dodaj pokrojonego łososia wędzonego, sok z cytryny, posiekany koperek, sól, pieprz i wymieszaj z makaronem.'
+        ]
+      },
+      {
+        id: 'starter-35',
+        title: 'Makaron z tuńczykiem w sosie pomidorowym',
+        emoji: '🥫',
+        prepTime: 20,
+        servings: 2,
+        tags: ['makarony', 'szybkie', 'miesne'],
+        source: 'Kuchnia domowa',
+        note: 'Ekspresowy makaron z zapasów spiżarni — z oliwkami i czosnkiem.',
+        ingredients: [
+          { name: 'Makaron penne lub rigatoni', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Tuńczyk w sosie własnym lub oliwie', amount: 1, unit: 'puszka', category: 'mieso', isPantry: false },
+          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Czosnek', amount: 2, unit: 'ząbki', category: 'warzywa', isPantry: false },
+          { name: 'Oliwki czarne', amount: 50, unit: 'g', category: 'przyprawy', isPantry: false }
+        ],
+        steps: [
+          'Ugotuj makaron al dente.',
+          'Podsmaż cebulę i czosnek, wlej pomidory z puszki, dopraw oregano, bazylią, solą i szczyptą chili; gotuj 8 minut.',
+          'Dodaj odsączonego tuńczyka i oliwki, podgrzej 2 minuty i połącz z makaronem.'
+        ]
+      },
+      {
+        id: 'starter-36',
+        title: 'Makaron z pieczoną fetą i pomidorkami',
+        emoji: '🧀',
+        prepTime: 30,
+        servings: 2,
+        tags: ['makarony', 'vege', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Hit z piekarnika — praktycznie robi się sam bez stania przy patelni.',
+        ingredients: [
+          { name: 'Ser feta w kostce', amount: 200, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Pomidorki koktajlowe', amount: 400, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Makaron świderki lub penne', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Czosnek', amount: 3, unit: 'ząbki', category: 'warzywa', isPantry: false },
+          { name: 'Bazylia świeża', amount: 1, unit: 'garść', category: 'warzywa', isPantry: false },
+          { name: 'Oliwa z oliwek', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'W naczyniu żaroodpornym ułóż na środku kostkę fety, wokół wsyp pomidorki i ząbki czosnku, polej oliwą i posyp ziołami.',
+          'Piecz 25 minut w 200°C, w międzyczasie ugotuj makaron al dente.',
+          'Rozgnieć upieczoną fetę i pomidorki widelcem na kremowy sos, wymieszaj z makaronem i świeżą bazylią.'
+        ]
+      },
+      {
+        id: 'starter-37',
+        title: 'Kurczak w sosie śmietanowo-pieczarkowym z ryżem',
+        emoji: '🍄',
+        prepTime: 25,
+        servings: 2,
+        tags: ['miesne', 'jednogarnkowe', 'szybkie'],
+        source: 'Kuchnia domowa',
+        note: 'Jedna patelnia, delikatne mięso i aromatyczny sos grzybowy.',
+        ingredients: [
+          { name: 'Pierś z kurczaka', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Pieczarki', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Śmietanka 30%', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Ryż lub kasza', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Natka pietruszki', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Wstaw ryż do gotowania.',
+          'Pokrojonego w kostkę kurczaka obsmaż na złoto na patelni i odłóż na talerz.',
+          'Na tej samej patelni zrumień cebulę i pokrojone pieczarki, wlej śmietankę i pół szklanki wody, włóż kurczaka z powrotem.',
+          'Duś 8 minut aż sos zgęstnieje, dopraw solą, pieprzem i posyp natką pietruszki.'
+        ]
+      },
+      {
+        id: 'starter-38',
+        title: 'Kurczak teriyaki z brokułem i ryżem',
+        emoji: '🥦',
+        prepTime: 25,
+        servings: 2,
+        tags: ['miesne', 'szybkie', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Azjatycki słodko-słony sos w 20 minut — lepszy niż z dostawy.',
+        ingredients: [
+          { name: 'Pierś z kurczaka', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Brokuł', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Ryż jaśminowy lub basmati', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Sos sojowy', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: false },
+          { name: 'Miód', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false },
+          { name: 'Czosnek', amount: 2, unit: 'ząbki', category: 'warzywa', isPantry: false },
+          { name: 'Sezam', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
+        ],
+        steps: [
+          'Ugotuj ryż, a różyczki brokułu obgotuj 4 minuty w osolonej wodzie lub na parze.',
+          'Wymieszaj sos sojowy, miód, przeciśnięty czosnek, łyżeczkę mąki ziemniaczanej i 4 łyżki wody.',
+          'Usmaż pokrojonego kurczaka na złoto, wlej sos i gotuj 2 minuty aż zgęstnieje w lśniącą glazurę.',
+          'Podawaj z ryżem, brokułem i posypką z sezamu.'
+        ]
+      },
+      {
+        id: 'starter-39',
+        title: 'Chili con carne z czerwoną fasolą i kukurydzą',
+        emoji: '🌶️',
+        prepTime: 35,
+        servings: 4,
+        tags: ['miesne', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Rozgrzewające, sycące danie — świetne z ryżem, nachosami albo tortillą.',
+        ingredients: [
+          { name: 'Mięso mielone wołowe', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Czerwona fasola w puszce', amount: 1, unit: 'puszka', category: 'sypkie', isPantry: false },
+          { name: 'Kukurydza konserwowa', amount: 1, unit: 'puszka', category: 'warzywa', isPantry: false },
+          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
+          { name: 'Papryka czerwona', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Ryż lub tortille', amount: 200, unit: 'g', category: 'sypkie', isPantry: false }
+        ],
+        steps: [
+          'Podsmaż posiekaną cebulę, czosnek i pokrojoną paprykę w dużym garnku.',
+          'Dodaj mięso mielone, dopraw kuminem, papryką słodką, chili i oregano, obsmaż dokładnie.',
+          'Wlej pomidory z puszki, dorzuć odsączoną fasolę i kukurydzę; duś 20 minut na małym ogniu.'
+        ]
+      },
+      {
+        id: 'starter-40',
+        title: 'Zupa krem z pieczonej dyni z grzankami',
+        emoji: '🎃',
+        prepTime: 35,
+        servings: 4,
+        tags: ['vege', 'jednogarnkowe', 'kolacja'],
+        source: 'Kuchnia domowa',
+        note: 'Aksamitny, rozgrzewający krem — pyszny z pestkami dyni i kleksem jogurtu.',
+        ingredients: [
+          { name: 'Dynia hokkaido', amount: 800, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Marchewka', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Ziemniaki', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Mleczko kokosowe lub śmietanka', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Pestki dyni i grzanki', amount: 50, unit: 'g', category: 'sypkie', isPantry: false }
+        ],
+        steps: [
+          'Pokrój dynię hokkaido (ze skórką!), marchewki, ziemniaki i cebulę w kostkę; zeszklij krótko w garnku z łyżką masła lub oliwy.',
+          'Zalej ok. 1 l bulionu lub wody, dodaj odrobinę imbiru i gotuj 20 minut do miękkości warzyw.',
+          'Zblenduj na gładki krem, wlej mleczko kokosowe lub śmietankę, dopraw solą i pieprzem; podawaj z pestkami dyni.'
+        ]
+      },
+      {
+        id: 'starter-41',
+        title: 'Kremowe risotto z pieczarkami i parmezanem',
+        emoji: '🍚',
+        prepTime: 30,
+        servings: 2,
+        tags: ['vege', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Kremowe włoskie risotto — sekret to stopniowe dolewanie gorącego bulionu.',
+        ingredients: [
+          { name: 'Ryż arborio do risotto', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Pieczarki', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
+          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Bulion warzywny', amount: 750, unit: 'ml', category: 'przyprawy', isPantry: false },
+          { name: 'Parmezan tarty', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
+          { name: 'Masło', amount: 2, unit: 'łyżki', category: 'nabial', isPantry: false }
+        ],
+        steps: [
+          'Podsmaż osobno pokrojone pieczarki na złoto i odłóż na bok.',
+          'W szerokim garnku zeszklij posiekaną cebulę na łyżce masła, wsyp suchy ryż i smaż minutę aż stanie się szklisty.',
+          'Dolewaj gorący bulion po jednej chochelce, mieszając aż ryż go wchłonie (ok. 18 minut do miękkości al dente).',
+          'Zdejmij z ognia, wmieszaj łyżkę zimnego masła, starty parmezan oraz podsmażone pieczarki.'
+        ]
+      },
+      {
+        id: 'starter-42',
+        title: 'Pulpety z indyka w sosie koperkowym',
+        emoji: '🥘',
+        prepTime: 35,
+        servings: 4,
+        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
+        source: 'Kuchnia domowa',
+        note: 'Delikatne, lekkie pulpeciki w domowym sosie — pasują do ziemniaków i kaszy.',
+        ingredients: [
+          { name: 'Mięso mielone z indyka', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Bułka tarta', amount: 3, unit: 'łyżki', category: 'sypkie', isPantry: false },
+          { name: 'Śmietanka 18% lub 30%', amount: 150, unit: 'ml', category: 'nabial', isPantry: false },
+          { name: 'Koperek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
+          { name: 'Ziemniaki lub kasza', amount: 500, unit: 'g', category: 'warzywa', isPantry: false }
+        ],
+        steps: [
+          'Wymieszaj mięso z jajkiem, bułką tartą, solą i pieprzem; uformuj nieduże kulki.',
+          'Zagotuj w szerokim garnku 600 ml bulionu lub wody, delikatnie włóż pulpety i gotuj pod przykryciem 15 minut.',
+          'Zahartuj śmietankę z łyżeczką mąki, wlej do garnka, wsyp posiekany koperek i zagotuj 2 minuty aż sos zgęstnieje.'
+        ]
       }
     ];
 
@@ -345,42 +1197,27 @@
       return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
     }
 
-    function formatDishCount(n) {
-      if (n === 1) return '1 danie';
-      if (n >= 2 && n <= 4) return `${n} dania`;
-      return `${n} dań`;
+    function formatMealCount(n) {
+      if (n === 1) return '1 posiłek';
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) return `${n} posiłki`;
+      return `${n} posiłków`;
     }
 
-    function encodeSetupPayload(obj) {
-      const bytes = new TextEncoder().encode(JSON.stringify(obj));
-      let bin = '';
-      bytes.forEach((b) => { bin += String.fromCharCode(b); });
-      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-
-    function decodeSetupPayload(str) {
-      const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-      const bin = atob(b64);
-      const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-      return JSON.parse(new TextDecoder().decode(bytes));
-    }
-
-    function parseFirebaseConfigInput(raw) {
-      if (!raw || typeof raw !== 'string') return null;
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.apiKey && parsed.projectId) return parsed;
-      } catch (_) {}
-      const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
-      const out = {};
-      for (const k of keys) {
-        const m = raw.match(new RegExp(`["']?${k}["']?\\s*:\\s*["']([^"']+)["']`));
-        if (m && m[1]) out[k] = m[1].trim();
+    // Obsługa nowego formatu (śniadanie/obiad/kolacja) + wsteczna zgodność ze starym planem obiadów
+    function getDayMeals(plan, dayId) {
+      const raw = plan?.[dayId];
+      if (!raw || typeof raw !== 'object') return {};
+      if (raw.recipeId || raw.title) {
+        return { lunch: raw };
       }
-      return out.apiKey && out.projectId ? out : null;
-    }
-
-    function compressImageFile(file) {
+      return {
+        breakfast: raw.breakfast || null,
+        lunch: raw.lunch || null,
+        dinner: raw.dinner || null
+      };
+    function compressImageFile(file, maxDim = 1200, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(new Error('Nie udało się odczytać zdjęcia.'));
@@ -388,7 +1225,6 @@
           const img = new Image();
           img.onerror = () => reject(new Error('Niepoprawny plik graficzny.'));
           img.onload = () => {
-            const maxDim = 1200;
             let w = img.width;
             let h = img.height;
             if (w > maxDim || h > maxDim) {
@@ -399,13 +1235,45 @@
             canvas.width = w;
             canvas.height = h;
             canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
             resolve({ dataUrl, base64: dataUrl.split(',')[1], mime: 'image/jpeg' });
           };
           img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
       });
+    }
+
+    async function fetchGeminiWithBackoff(apiKey, payload, maxRetries = 3) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${encodeURIComponent(apiKey || '')}`;
+      let delay = 1000;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) return await res.json();
+          if (res.status === 429 || res.status >= 500) {
+            if (attempt < maxRetries) {
+              await new Promise((r) => setTimeout(r, delay));
+              delay *= 2;
+              continue;
+            }
+          }
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson?.error?.message || `Błąd API Gemini (${res.status}) — sprawdź klucz w Ustawieniach.`);
+        } catch (err) {
+          if (attempt < maxRetries && !String(err.message || '').includes('Błąd API Gemini')) {
+            await new Promise((r) => setTimeout(r, delay));
+            delay *= 2;
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw new Error('Przekroczono limit prób połączenia z AI.');
     }
 
     function isChoreDue(chore) {
@@ -492,18 +1360,16 @@
         toastTimer.current = setTimeout(() => setToast(null), 3200);
       };
 
-      // Stan domu
+      // Stan domu (bez punktacji)
       const defaultHousehold = {
         user1Name: 'Kuba',
         user2Name: 'Ania',
-        user1Points: 0,
-        user2Points: 0,
-        weeklyReward: 'Przegrany robi kawę do łóżka w niedzielę ☕',
         inStoreBy: null,
         inStoreAt: null,
         nudge: null,
         mealPlan: {},
-        starterVotes: {}
+        starterVotes: {},
+        choresSeeded: false
       };
 
       const loadLocal = (key, fallback) => {
@@ -574,7 +1440,6 @@
       // --- UI Obowiązki ---
       const [choresFilter, setChoresFilter] = useState('due'); // due | all
       const [showAddChoreModal, setShowAddChoreModal] = useState(false);
-      const [confirmResetPoints, setConfirmResetPoints] = useState(false);
 
       // --- UI Przepisy i Planer ---
       const [recipeSearch, setRecipeSearch] = useState('');
@@ -583,79 +1448,89 @@
       const [portionMultiplier, setPortionMultiplier] = useState(1);
       const [checkedSteps, setCheckedSteps] = useState({});
       const [addToCartModal, setAddToCartModal] = useState(null);
-      const [showImportModal, setShowImportModal] = useState(false);
+      const [importModalMode, setImportModalMode] = useState(null); // null | 'manual' | 'image' | 'text' | 'ai'
       const [showMatchModal, setShowMatchModal] = useState(false);
-      const [plannerPickerDay, setPlannerPickerDay] = useState(null);
+      const [plannerPickerTarget, setPlannerPickerTarget] = useState(null); // { dayId, slotId }
       const [scheduleRecipeModal, setScheduleRecipeModal] = useState(null);
       const [confirmClearPlan, setConfirmClearPlan] = useState(false);
       const [showSettingsModal, setShowSettingsModal] = useState(false);
-
+      const [zoomedScreenshot, setZoomedScreenshot] = useState(null);
       const selectedRecipe = useMemo(
         () => recipes.find((r) => r.id === selectedRecipeId) || null,
         [recipes, selectedRecipeId]
       );
 
+      const colPath = (name) => `artifacts/${APP_ID}/public/data/${name}`;
+
       // ==========================================================================
-      // PODŁĄCZENIE FIREBASE + SYNCHRONIZACJA NA ŻYWO (2 iPhone'y)
+      // POŁĄCZENIE Z FIREBASE I SYNCHRONIZACJA NA ŻYWO (2 iPHONE'Y)
       // ==========================================================================
       useEffect(() => {
-        if (!fbConfig || !window.firebase) {
+        if (!fbConfig) {
           setSyncStatus('local');
           return;
         }
+        let unsubAuth = null;
         try {
-          if (!window.firebase.apps.length) {
-            window.firebase.initializeApp(fbConfig);
-          }
-          dbRef.current = window.firebase.firestore();
-          const auth = window.firebase.auth();
-          const unsubAuth = auth.onAuthStateChanged((user) => {
+          setSyncStatus('connecting');
+          setSyncError('');
+          const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(fbConfig);
+          dbRef.current = app.firestore();
+          const auth = app.auth();
+          unsubAuth = auth.onAuthStateChanged((user) => {
             if (user) {
               setAuthUser(user);
             } else {
               auth.signInAnonymously().catch((err) => {
                 console.warn('Błąd logowania anonimowego:', err);
                 setSyncStatus('error');
-                setSyncError('Włącz „Anonymous” w Firebase → Authentication → Sign-in method.');
+                setSyncError('Włącz Anonymous w Firebase → Authentication.');
               });
             }
           });
-          return () => unsubAuth();
         } catch (err) {
           console.warn('Błąd inicjalizacji Firebase:', err);
           setSyncStatus('error');
           setSyncError('Niepoprawna konfiguracja Firebase.');
         }
+        return () => {
+          if (typeof unsubAuth === 'function') unsubAuth();
+        };
       }, [fbConfig]);
 
       useEffect(() => {
         if (!dbRef.current || !authUser) return;
         const db = dbRef.current;
         setSyncStatus('connecting');
-        const basePath = `artifacts/${APP_ID}/public/data`;
+        setSyncError('');
 
-        const houseDocRef = db.doc(`${basePath}/households/${cleanHouseId}`);
+        const houseDocRef = db.doc(`${colPath('households')}/${cleanHouseId}`);
+
         const unsubHouse = houseDocRef.onSnapshot(
           (snap) => {
             if (snap.exists) {
-              const data = { ...defaultHousehold, ...snap.data() };
-              householdRef.current = data;
-              setHousehold(data);
+              const data = snap.data();
+              setHousehold((prev) => ({ ...defaultHousehold, ...prev, ...data }));
             } else {
-              houseDocRef.set({ ...defaultHousehold, createdAt: Date.now() }).catch(() => {});
+              houseDocRef
+                .set({
+                  ...defaultHousehold,
+                  choresSeeded: false,
+                  createdAt: Date.now()
+                })
+                .catch((e) => console.warn('Błąd tworzenia dokumentu domu:', e));
             }
             setSyncStatus('synced');
-            setSyncError('');
           },
           (err) => {
-            console.warn('Błąd Firestore (household):', err);
+            console.warn('Błąd synchronizacji domu:', err);
             setSyncStatus('error');
-            setSyncError('Brak uprawnień Firestore — sprawdź reguły (Rules) w Firebase.');
+            setSyncError('Brak dostępu do Firestore — sprawdź zakładkę Rules w Firebase.');
           }
         );
 
         const unsubShopping = db
-          .collection(`${basePath}/shopping`)
+          .collection(colPath('shopping'))
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
             (snap) => {
@@ -664,11 +1539,11 @@
                 .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
               setShoppingItems(items);
             },
-            (err) => console.warn('Błąd zakupów:', err)
+            (err) => console.warn('Błąd synchronizacji zakupów:', err)
           );
 
         const unsubFridge = db
-          .collection(`${basePath}/fridge`)
+          .collection(colPath('fridge'))
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
             (snap) => {
@@ -677,33 +1552,48 @@
                 .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
               setFridgeItems(items);
             },
-            (err) => console.warn('Błąd lodówki:', err)
+            (err) => console.warn('Błąd synchronizacji lodówki:', err)
           );
 
         const unsubChores = db
-          .collection(`${basePath}/chores`)
+          .collection(colPath('chores'))
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
-            (snap) => {
-              if (snap.empty) {
-                const batch = db.batch();
-                STARTER_CHORES.forEach((c) => {
-                  const ref = db.collection(`${basePath}/chores`).doc(`${cleanHouseId}_${c.id}`);
-                  batch.set(ref, { ...c, houseCode: cleanHouseId, createdAt: Date.now() }, { merge: true });
-                });
-                batch.commit().catch(() => {});
-              } else {
-                const items = snap.docs
-                  .map((d) => ({ id: d.id, ...d.data() }))
-                  .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-                setChores(items);
+            async (snap) => {
+              const items = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+              if (items.length === 0 && !householdRef.current.choresSeeded) {
+                try {
+                  const hSnap = await houseDocRef.get();
+                  if (!hSnap.exists || !hSnap.data()?.choresSeeded) {
+                    await houseDocRef.set({ choresSeeded: true }, { merge: true });
+                    const now = Date.now();
+                    for (let i = 0; i < STARTER_CHORES.length; i++) {
+                      const sc = STARTER_CHORES[i];
+                      await db.collection(colPath('chores')).add({
+                        title: sc.title,
+                        frequency: sc.frequency,
+                        assignedTo: sc.assignedTo,
+                        houseCode: cleanHouseId,
+                        lastDoneAt: null,
+                        lastDoneBy: null,
+                        createdAt: now + i
+                      });
+                    }
+                    return;
+                  }
+                } catch (e) {
+                  console.warn('Błąd inicjalizacji obowiązków:', e);
+                }
               }
+              setChores(items);
             },
-            (err) => console.warn('Błąd obowiązków:', err)
+            (err) => console.warn('Błąd synchronizacji obowiązków:', err)
           );
 
         const unsubRecipes = db
-          .collection(`${basePath}/recipes`)
+          .collection(colPath('recipes'))
           .where('houseCode', '==', cleanHouseId)
           .onSnapshot(
             (snap) => {
@@ -712,7 +1602,7 @@
                 .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
               setCustomRecipes(items);
             },
-            (err) => console.warn('Błąd przepisów:', err)
+            (err) => console.warn('Błąd synchronizacji przepisów:', err)
           );
 
         return () => {
@@ -723,8 +1613,6 @@
           unsubRecipes();
         };
       }, [authUser, cleanHouseId]);
-
-      const colPath = (name) => `artifacts/${APP_ID}/public/data/${name}`;
 
       // POPRAWIONA funkcja aktualizacji domu (mergeFields naprawia usuwanie dni z Planera!)
       const updateHouseholdField = async (patch) => {
@@ -829,7 +1717,9 @@
         if (existing) {
           const nextAmount = Math.round(((Number(existing.amount) || 0) + addAmt) * 10) / 10;
           if (dbRef.current && authUser) {
-            await dbRef.current.doc(`${colPath('fridge')}/${existing.id}`).update({ amount: nextAmount, updatedAt: Date.now() });
+            await dbRef.current
+              .doc(`${colPath('fridge')}/${existing.id}`)
+              .update({ amount: nextAmount, updatedAt: Date.now() });
           } else {
             setFridgeItems((prev) =>
               prev.map((f) => (f.id === existing.id ? { ...f, amount: nextAmount, updatedAt: Date.now() } : f))
@@ -890,7 +1780,9 @@
           return;
         }
         if (dbRef.current && authUser) {
-          await dbRef.current.doc(`${colPath('fridge')}/${item.id}`).update({ amount: nextAmount, updatedAt: Date.now() });
+          await dbRef.current
+            .doc(`${colPath('fridge')}/${item.id}`)
+            .update({ amount: nextAmount, updatedAt: Date.now() });
         } else {
           setFridgeItems((prev) => prev.map((f) => (f.id === item.id ? { ...f, amount: nextAmount } : f)));
         }
@@ -912,11 +1804,15 @@
           inStoreBy: amIInStore ? null : activeProfile,
           inStoreAt: amIInStore ? null : Date.now()
         });
-        showToast(amIInStore ? 'Zakończono tryb sklepowy' : `Włączono tryb „W sklepie” — ${partnerUserName} widzi powiadomienie! 🏪`);
+        showToast(
+          amIInStore
+            ? 'Zakończono tryb sklepowy'
+            : `Włączono tryb „W sklepie” — ${partnerUserName} widzi powiadomienie! 🏪`
+        );
       };
 
       // ==========================================================================
-      // OPERACJE: OBOWIĄZKI I PUNKTY
+      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI)
       // ==========================================================================
       const handleAddChore = async (choreData) => {
         const entry = {
@@ -936,22 +1832,32 @@
       };
 
       const completeChore = async (chore) => {
-        const pts = Number(chore.points) || 10;
-        const pointKey = activeProfile === 'user1' ? 'user1Points' : 'user2Points';
-        const nextPoints = (Number(householdRef.current[pointKey]) || 0) + pts;
-
-        await updateHouseholdField({ [pointKey]: nextPoints });
+        const now = Date.now();
         if (dbRef.current && authUser) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
-            lastDoneAt: Date.now(),
+            lastDoneAt: now,
             lastDoneBy: activeProfile
           });
         } else {
           setChores((prev) =>
-            prev.map((c) => (c.id === chore.id ? { ...c, lastDoneAt: Date.now(), lastDoneBy: activeProfile } : c))
+            prev.map((c) => (c.id === chore.id ? { ...c, lastDoneAt: now, lastDoneBy: activeProfile } : c))
           );
         }
-        showToast(`Brawo ${activeUserName}! +${pts} pkt 🏆`);
+        showToast(`Odznaczono: ${chore.title} ✅`);
+      };
+
+      const undoChore = async (chore) => {
+        if (dbRef.current && authUser) {
+          await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
+            lastDoneAt: null,
+            lastDoneBy: null
+          });
+        } else {
+          setChores((prev) =>
+            prev.map((c) => (c.id === chore.id ? { ...c, lastDoneAt: null, lastDoneBy: null } : c))
+          );
+        }
+        showToast('Przywrócono na listę do zrobienia');
       };
 
       const deleteChore = async (chore) => {
@@ -972,13 +1878,7 @@
             sentAt: Date.now()
           }
         });
-        showToast(`Wysłano delikatne szturchnięcie do: ${partnerUserName} 🔔`);
-      };
-
-      const resetWeeklyPoints = async () => {
-        await updateHouseholdField({ user1Points: 0, user2Points: 0 });
-        setConfirmResetPoints(false);
-        showToast('Wyzerowano punkty na nowy tydzień! 🔄');
+        showToast(`Wysłano przypomnienie do: ${partnerUserName} 🔔`);
       };
 
       // ==========================================================================
@@ -996,7 +1896,7 @@
         } else {
           setCustomRecipes((prev) => [{ id: `rec-${Date.now()}`, ...entry }, ...prev]);
         }
-        setShowImportModal(false);
+        setImportModalMode(null);
         showToast(`Zapisano przepis: ${recipeData.title} 🍽️`);
       };
 
@@ -1033,53 +1933,64 @@
       };
 
       const resetAllVotes = async () => {
-        await updateHouseholdField({ starterVotes: {} });
-        if (dbRef.current && authUser) {
-          for (const r of customRecipes) {
-            await dbRef.current.doc(`${colPath('recipes')}/${r.id}`).update({ votes: {} }).catch(() => {});
+        try {
+          await updateHouseholdField({ starterVotes: {} });
+          if (dbRef.current && authUser) {
+            for (const r of customRecipes) {
+              await dbRef.current.doc(`${colPath('recipes')}/${r.id}`).update({ votes: {} });
+            }
+          } else {
+            setCustomRecipes((prev) => prev.map((r) => ({ ...r, votes: {} })));
           }
-        } else {
-          setCustomRecipes((prev) => prev.map((r) => ({ ...r, votes: {} })));
+          showToast('Zresetowano głosy – możecie wybierać na nowo!');
+        } catch (err) {
+          console.warn('Błąd resetowania głosów:', err);
+          showToast('Nie udało się zresetować wszystkich głosów', 'error');
         }
-        showToast('Zresetowano głosy – możecie wybierać na nowo!');
       };
 
       const openRecipeIngredientsModal = (recipe, mult = 1) => {
         const items = (recipe.ingredients || []).map((ing, idx) => {
           const cleanName = (ing.name || '').trim();
           const unit = (ing.unit || 'szt.').trim();
-          const scaled = Math.round((parseSafeNumber(ing.amount, 1) * mult) * 10) / 10;
+          const scaled = Math.round((parseSafeNumber(ing.amount, 1) || 1) * mult * 10) / 10;
           const ingLower = cleanName.toLowerCase();
+
           const matchedInFridge = fridgeItems.find((fi) => {
             const fiLower = (fi.name || '').trim().toLowerCase();
             if (fiLower.length < 3 || ingLower.length < 3) return fiLower === ingLower;
             return ingLower.includes(fiLower) || fiLower.includes(ingLower);
           });
 
-          let needed = scaled;
-          let covered = false;
+          let neededAmount = scaled;
+          let coveredByFridge = false;
           if (matchedInFridge) {
             const sameUnit = (matchedInFridge.unit || '').trim().toLowerCase() === unit.toLowerCase();
             if (sameUnit) {
               const rem = Math.round((scaled - (Number(matchedInFridge.amount) || 0)) * 10) / 10;
-              if (rem <= 0) covered = true;
-              else needed = rem;
+              if (rem <= 0) coveredByFridge = true;
+              else neededAmount = rem;
             } else {
-              covered = true;
+              coveredByFridge = true;
             }
           }
 
           return {
-            ...ing,
             name: cleanName,
             unit,
+            category: ing.category || guessShoppingCategory(cleanName),
+            isPantry: !!ing.isPantry,
             idx,
             inFridge: matchedInFridge || null,
-            scaledAmount: needed,
-            selected: !ing.isPantry && !covered
+            scaledAmount: neededAmount,
+            selected: !ing.isPantry && !coveredByFridge
           };
         });
-        setAddToCartModal({ recipeTitle: recipe.title, items });
+
+        setAddToCartModal({
+          recipeTitle: recipe.title,
+          items
+        });
       };
 
       const confirmAddIngredientsToCart = async () => {
@@ -1089,84 +2000,129 @@
           setAddToCartModal(null);
           return;
         }
-        for (const ing of toAdd) {
+        for (const item of toAdd) {
           await addShoppingItem({
-            name: ing.name,
-            amount: ing.scaledAmount,
-            unit: ing.unit,
-            category: ing.category || guessShoppingCategory(ing.name)
+            name: item.name,
+            amount: item.scaledAmount,
+            unit: item.unit,
+            category: item.category
           });
         }
         setAddToCartModal(null);
         showToast(`Dodano ${toAdd.length} składników na listę zakupów! 🛒`);
       };
 
-      // --- PLANER POSIŁKÓW (PON–ND) ---
+      // --- PLANER POSIŁKÓW (ŚNIADANIE, OBIAD, KOLACJA • PON–ND) ---
       const mealPlan = household.mealPlan || {};
       const todayJsDay = new Date().getDay();
-      const plannedMealsCount = useMemo(
-        () => WEEK_DAYS.filter((d) => mealPlan[d.id]?.recipeId).length,
-        [mealPlan]
-      );
 
-      const assignRecipeToDay = async (dayId, recipe, servingsCount = null) => {
+      const plannedMealsCount = useMemo(() => {
+        let count = 0;
+        for (const d of WEEK_DAYS) {
+          const dayMeals = getDayMeals(mealPlan, d.id);
+          for (const slot of MEAL_SLOTS) {
+            if (dayMeals[slot.id]?.title) count++;
+          }
+        }
+        return count;
+      }, [mealPlan]);
+
+      const uncookedPlannedMealsCount = useMemo(() => {
+        let count = 0;
+        for (const d of WEEK_DAYS) {
+          const dayMeals = getDayMeals(mealPlan, d.id);
+          for (const slot of MEAL_SLOTS) {
+            if (dayMeals[slot.id]?.title && !dayMeals[slot.id]?.cooked) count++;
+          }
+        }
+        return count;
+      }, [mealPlan]);
+
+      const assignMealToSlot = async (dayId, slotId, recipeOrCustom, servingsCount = null) => {
+        const slotObj = MEAL_SLOTS.find((s) => s.id === slotId) || MEAL_SLOTS[1];
+        const existingDay = { ...getDayMeals(householdRef.current.mealPlan, dayId) };
+        const isCustom = Boolean(recipeOrCustom.isCustom);
+
+        existingDay[slotId] = {
+          recipeId: isCustom ? null : recipeOrCustom.id,
+          starterId: isCustom
+            ? null
+            : recipeOrCustom.starterId || (String(recipeOrCustom.id || '').startsWith('starter-') ? recipeOrCustom.id : null),
+          isCustom,
+          title: recipeOrCustom.title,
+          emoji: recipeOrCustom.emoji || slotObj.emoji,
+          prepTime: recipeOrCustom.prepTime || (isCustom ? null : 25),
+          servings: servingsCount || recipeOrCustom.servings || 2,
+          cooked: false,
+          plannedBy: activeProfile,
+          plannedAt: Date.now()
+        };
+
         const nextPlan = {
           ...(householdRef.current.mealPlan || {}),
-          [dayId]: {
-            recipeId: recipe.id,
-            starterId: recipe.starterId || (String(recipe.id || '').startsWith('starter-') ? recipe.id : null),
-            title: recipe.title,
-            emoji: recipe.emoji || '🍽️',
-            prepTime: recipe.prepTime || 25,
-            servings: servingsCount || recipe.servings || 2,
-            cooked: false,
-            plannedBy: activeProfile,
-            plannedAt: Date.now()
-          }
+          [dayId]: existingDay
         };
         await updateHouseholdField({ mealPlan: nextPlan });
         const dayObj = WEEK_DAYS.find((d) => d.id === dayId);
-        showToast(`Zaplanowano na ${dayObj?.label || dayId}: ${recipe.title} 📅`);
+        showToast(`Zaplanowano (${slotObj.label}, ${dayObj?.short || dayId}): ${recipeOrCustom.title} 📅`);
       };
 
-      const updateMealPlanDay = async (dayId, patch) => {
-        const current = householdRef.current.mealPlan?.[dayId];
-        if (!current) return;
+      const updateMealPlanSlot = async (dayId, slotId, patch) => {
+        const existingDay = { ...getDayMeals(householdRef.current.mealPlan, dayId) };
+        if (!existingDay[slotId]) return;
+        existingDay[slotId] = { ...existingDay[slotId], ...patch };
         const nextPlan = {
           ...(householdRef.current.mealPlan || {}),
-          [dayId]: { ...current, ...patch }
+          [dayId]: existingDay
         };
         await updateHouseholdField({ mealPlan: nextPlan });
       };
 
-      const removeMealPlanDay = async (dayId) => {
+      const removeMealPlanSlot = async (dayId, slotId) => {
+        const existingDay = { ...getDayMeals(householdRef.current.mealPlan, dayId) };
+        delete existingDay[slotId];
         const nextPlan = { ...(householdRef.current.mealPlan || {}) };
-        delete nextPlan[dayId];
+        const hasAny = MEAL_SLOTS.some((s) => existingDay[s.id]?.title);
+        if (hasAny) {
+          nextPlan[dayId] = existingDay;
+        } else {
+          delete nextPlan[dayId];
+        }
         await updateHouseholdField({ mealPlan: nextPlan });
-        showToast('Usunięto danie z planu tygodnia');
+        showToast('Usunięto posiłek z planu');
       };
 
       const clearMealPlan = async () => {
         await updateHouseholdField({ mealPlan: {} });
         setConfirmClearPlan(false);
-        showToast('Wyczyszczono plan posiłków na ten tydzień 🧹');
+        showToast('Wyczyszczono cały plan posiłków na ten tydzień 🧹');
       };
 
-      const randomizeMissingMealDays = async () => {
+      const randomizeMissingLunches = async () => {
         if (recipes.length === 0) return;
         const currentPlan = { ...(householdRef.current.mealPlan || {}) };
-        const usedIds = new Set(Object.values(currentPlan).map((p) => p?.recipeId).filter(Boolean));
-        const emptyDays = WEEK_DAYS.filter((d) => !currentPlan[d.id]?.recipeId);
+        const usedIds = new Set();
+        const emptyDays = [];
+
+        for (const day of WEEK_DAYS) {
+          const dayMeals = getDayMeals(currentPlan, day.id);
+          if (dayMeals.lunch?.recipeId) usedIds.add(dayMeals.lunch.recipeId);
+          if (!dayMeals.lunch?.title) emptyDays.push(day);
+        }
 
         if (emptyDays.length === 0) {
-          showToast('Cały tydzień jest już zaplanowany! 📅', 'info');
+          showToast('Wszystkie obiady w tygodniu są już zaplanowane! 📅', 'info');
           return;
         }
 
-        const matchPool = recipes.filter(
+        // Preferujemy przepisy obiadowe (nie typowo śniadaniowe) i Wasze Matche
+        const lunchCandidates = recipes.filter((r) => !(r.tags || []).includes('sniadanie'));
+        const poolBase = lunchCandidates.length > 0 ? lunchCandidates : recipes;
+
+        const matchPool = poolBase.filter(
           (r) => r.votes?.user1 === 'yes' && r.votes?.user2 === 'yes' && !usedIds.has(r.id)
         );
-        const otherPool = recipes.filter(
+        const otherPool = poolBase.filter(
           (r) => !usedIds.has(r.id) && !matchPool.some((m) => m.id === r.id)
         );
         const shuffled = [
@@ -1176,11 +2132,13 @@
 
         let idx = 0;
         for (const day of emptyDays) {
-          const pick = shuffled[idx] || recipes[Math.floor(Math.random() * recipes.length)];
+          const pick = shuffled[idx] || poolBase[Math.floor(Math.random() * poolBase.length)];
           idx++;
-          currentPlan[day.id] = {
+          const existingDay = { ...getDayMeals(currentPlan, day.id) };
+          existingDay.lunch = {
             recipeId: pick.id,
             starterId: pick.starterId || (String(pick.id || '').startsWith('starter-') ? pick.id : null),
+            isCustom: false,
             title: pick.title,
             emoji: pick.emoji || '🍽️',
             prepTime: pick.prepTime || 25,
@@ -1189,31 +2147,46 @@
             plannedBy: activeProfile,
             plannedAt: Date.now()
           };
+          currentPlan[day.id] = existingDay;
         }
         await updateHouseholdField({ mealPlan: currentPlan });
         showToast(`Wylosowano obiady na ${emptyDays.length} wolnych dni! 🎲`);
       };
 
       const openWeeklyPlanShoppingModal = () => {
-        const activeDays = WEEK_DAYS.filter((d) => mealPlan[d.id]?.recipeId && !mealPlan[d.id]?.cooked);
-        if (activeDays.length === 0) {
-          showToast('Najpierw zaplanuj przynajmniej jeden nieugotowany obiad 📅', 'info');
+        const activeEntries = [];
+        for (const day of WEEK_DAYS) {
+          const dayMeals = getDayMeals(mealPlan, day.id);
+          for (const slot of MEAL_SLOTS) {
+            const entry = dayMeals[slot.id];
+            if (entry?.title && !entry.cooked) {
+              activeEntries.push({ day, slot, entry });
+            }
+          }
+        }
+
+        if (activeEntries.length === 0) {
+          showToast('Najpierw zaplanuj przynajmniej jeden nieprzygotowany posiłek 📅', 'info');
           return;
         }
 
         const mergedMap = new Map();
-        for (const day of activeDays) {
-          const entry = mealPlan[day.id];
+        let matchedRecipeCount = 0;
+
+        for (const { day, slot, entry } of activeEntries) {
+          if (!entry.recipeId && !entry.starterId) continue;
           const recipe = recipes.find(
             (r) =>
               r.id === entry.recipeId ||
               (entry.starterId && (r.id === entry.starterId || r.starterId === entry.starterId))
           );
           if (!recipe) continue;
+          matchedRecipeCount++;
 
           const baseServings = Number(recipe.servings) || 2;
           const plannedServings = Number(entry.servings) || baseServings;
           const mult = plannedServings / baseServings;
+          const dayTag = `${day.short} (${slot.short})`;
 
           for (const ing of recipe.ingredients || []) {
             const cleanName = (ing.name || '').trim();
@@ -1225,7 +2198,7 @@
             if (mergedMap.has(key)) {
               const existing = mergedMap.get(key);
               existing.scaledAmount = Math.round((existing.scaledAmount + scaled) * 10) / 10;
-              if (!existing.days.includes(day.short)) existing.days.push(day.short);
+              if (!existing.days.includes(dayTag)) existing.days.push(dayTag);
               if (!ing.isPantry) existing.isPantry = false;
             } else {
               mergedMap.set(key, {
@@ -1234,10 +2207,15 @@
                 category: ing.category || guessShoppingCategory(cleanName),
                 isPantry: !!ing.isPantry,
                 scaledAmount: Math.round(scaled * 10) / 10,
-                days: [day.short]
+                days: [dayTag]
               });
             }
           }
+        }
+
+        if (mergedMap.size === 0) {
+          showToast('Zaplanowane pozycje nie mają przypisanych przepisów ze składnikami.', 'info');
+          return;
         }
 
         const aggregatedItems = Array.from(mergedMap.values()).map((ing, idx) => {
@@ -1271,7 +2249,7 @@
         });
 
         setAddToCartModal({
-          recipeTitle: `Plan tygodnia (${formatDishCount(activeDays.length)})`,
+          recipeTitle: `Plan tygodnia (${formatMealCount(matchedRecipeCount)})`,
           items: aggregatedItems
         });
       };
@@ -1451,7 +2429,7 @@
                ================================================================== */}
             {activeTab === 'shopping' && (
               <div className="space-y-4">
-                {/* Przełącznik Lista vs Lodówka */}
+                {/* Przełącznik Zakupy / Lodówka */}
                 <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-3xl shadow-sm border border-slate-200/70">
                   <button
                     onClick={() => setShoppingSubTab('list')}
@@ -1475,65 +2453,70 @@
 
                 {shoppingSubTab === 'list' ? (
                   <>
-                    {/* Formularz dodawania produktu + tryb w sklepie */}
-                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-3">
-                      <form onSubmit={handleQuickAddShopping} className="space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newItemName}
-                            onChange={(e) => setNewItemName(e.target.value)}
-                            placeholder="Co trzeba kupić? (np. mleko, chleb)"
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                          <button
-                            type="submit"
-                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center active:scale-95 transition-transform"
-                          >
-                            <Icon name="plus" className="w-5 h-5" />
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={newItemAmount}
-                            onChange={(e) => setNewItemAmount(e.target.value)}
-                            className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-center"
-                            aria-label="Ilość"
-                          />
-                          <select
-                            value={newItemUnit}
-                            onChange={(e) => setNewItemUnit(e.target.value)}
-                            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700"
-                          >
-                            <option value="szt.">szt.</option>
-                            <option value="g">g</option>
-                            <option value="kg">kg</option>
-                            <option value="ml">ml</option>
-                            <option value="l">l</option>
-                            <option value="opak.">opak.</option>
-                          </select>
-                          <button
-                            type="button"
-                            onClick={toggleInStore}
-                            className={`ml-auto px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-colors ${
-                              household.inStoreBy === activeProfile
-                                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                                : 'bg-slate-50 border-slate-200 text-slate-600'
-                            }`}
-                          >
-                            <Icon name="store" className="w-3.5 h-3.5" />
-                            {household.inStoreBy === activeProfile ? 'W sklepie ✓' : 'Jestem w sklepie'}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
+                    {/* Formularz szybkiego dodawania produktu */}
+                    <form
+                      onSubmit={handleQuickAddShopping}
+                      className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5"
+                    >
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newItemName}
+                          onChange={(e) => setNewItemName(e.target.value)}
+                          placeholder="Co trzeba kupić? (np. mleko, chleb)"
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <button
+                          type="submit"
+                          className="w-11 h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0"
+                          aria-label="Dodaj produkt"
+                        >
+                          <Icon name="plus" className="w-5 h-5" />
+                        </button>
+                      </div>
 
-                    {/* Lista do kupienia pogrupowana alejkami */}
-                    {groupedShopping.length === 0 && checkedShopping.length === 0 ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={newItemAmount}
+                          onChange={(e) => setNewItemAmount(e.target.value)}
+                          className="w-16 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                          aria-label="Ilość"
+                        />
+                        <select
+                          value={newItemUnit}
+                          onChange={(e) => setNewItemUnit(e.target.value)}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"
+                          aria-label="Jednostka"
+                        >
+                          <option value="szt.">szt.</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                          <option value="ml">ml</option>
+                          <option value="l">l</option>
+                          <option value="opak.">opak.</option>
+                          <option value="pęczek">pęczek</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={toggleInStore}
+                          className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                            household.inStoreBy === activeProfile
+                              ? 'bg-emerald-600 border-emerald-600 text-white'
+                              : 'bg-slate-50 border-slate-200 text-slate-700'
+                          }`}
+                        >
+                          <Icon name="store" className="w-4 h-4 shrink-0" />
+                          <span>{household.inStoreBy === activeProfile ? 'W sklepie ✓' : 'Jestem w sklepie'}</span>
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Lista zakupów pogrupowana kategoriami */}
+                    {shoppingItems.length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
-                        <p className="text-3xl mb-2">🛒</p>
+                        <p className="text-4xl mb-2">🛒</p>
                         <p className="text-sm font-bold text-slate-800">Lista zakupów jest pusta</p>
                         <p className="text-xs text-slate-500 mt-1">
                           Dopisz produkty wyżej albo wrzuć składniki z Planera tygodnia!
@@ -1542,64 +2525,74 @@
                     ) : (
                       <div className="space-y-3">
                         {groupedShopping.map((group) => (
-                          <div key={group.id} className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70">
-                            <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 px-1 mb-2">
-                              {group.emoji} {group.label}
-                            </p>
+                          <div
+                            key={group.id}
+                            className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2"
+                          >
+                            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 px-1 flex items-center gap-1.5">
+                              <span>{group.emoji}</span>
+                              <span>{group.label}</span>
+                            </h3>
                             <div className="divide-y divide-slate-100">
                               {group.items.map((item) => (
-                                <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
+                                <div key={item.id} className="py-2 flex items-center justify-between gap-2">
                                   <button
                                     onClick={() => toggleShoppingItem(item)}
                                     className="flex items-center gap-3 flex-1 min-w-0 text-left"
                                   >
                                     <span className="w-6 h-6 rounded-xl border-2 border-slate-300 flex items-center justify-center shrink-0" />
-                                    <span className="text-sm font-semibold text-slate-800 truncate">{item.name}</span>
+                                    <span className="text-sm font-semibold text-slate-800 truncate">
+                                      {item.name}
+                                    </span>
                                   </button>
-                                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-xl shrink-0">
-                                    {formatAmount(item.amount)} {item.unit}
-                                  </span>
-                                  <button
-                                    onClick={() => deleteShoppingItem(item)}
-                                    className="p-1.5 text-slate-300 hover:text-rose-500"
-                                    aria-label="Usuń"
-                                  >
-                                    <Icon name="trash" className="w-4 h-4" />
-                                  </button>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg">
+                                      {formatAmount(item.amount)} {item.unit}
+                                    </span>
+                                    <button
+                                      onClick={() => deleteShoppingItem(item)}
+                                      className="p-1.5 text-slate-300 hover:text-rose-500"
+                                      aria-label="Usuń produkt"
+                                    >
+                                      <Icon name="trash" className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         ))}
 
-                        {/* Produkty w koszyku (odhaczone) */}
+                        {/* Sekcja kupionych produktów */}
                         {checkedShopping.length > 0 && (
-                          <div className="bg-emerald-50/60 rounded-3xl p-4 border border-emerald-200/80 space-y-3">
+                          <div className="bg-emerald-50/60 rounded-3xl p-3.5 border border-emerald-200/80 space-y-2.5">
                             <div className="flex items-center justify-between gap-2">
-                              <p className="text-xs font-extrabold text-emerald-800">
+                              <span className="text-xs font-extrabold text-emerald-800">
                                 W koszyku ({checkedShopping.length})
-                              </p>
+                              </span>
                               <button
                                 onClick={clearCheckedToFridge}
-                                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform"
+                                className="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95"
                               >
                                 <Icon name="snowflake" className="w-3.5 h-3.5" />
                                 Przenieś do Lodówki
                               </button>
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                               {checkedShopping.map((item) => (
-                                <div key={item.id} className="flex items-center justify-between gap-2 py-1">
+                                <div key={item.id} className="py-1.5 flex items-center justify-between gap-2">
                                   <button
                                     onClick={() => toggleShoppingItem(item)}
-                                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left opacity-70"
                                   >
                                     <span className="w-5 h-5 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
                                       <Icon name="check" className="w-3.5 h-3.5" />
                                     </span>
-                                    <span className="text-sm line-through text-slate-500 truncate">{item.name}</span>
+                                    <span className="text-sm line-through text-slate-600 truncate">
+                                      {item.name}
+                                    </span>
                                   </button>
-                                  <span className="text-xs text-slate-400">
+                                  <span className="text-xs text-slate-500 shrink-0">
                                     {formatAmount(item.amount)} {item.unit}
                                   </span>
                                 </div>
@@ -1613,67 +2606,74 @@
                 ) : (
                   /* PODZAKŁADKA: LODÓWKA */
                   <div className="space-y-3">
-                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-2.5">
-                      <p className="text-xs text-slate-500">
-                        Produkty tutaj są automatycznie odejmowane, gdy wrzucasz składniki z przepisu lub Planera na listę zakupów.
-                      </p>
-                      <form onSubmit={handleQuickAddFridge} className="space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newFridgeName}
-                            onChange={(e) => setNewFridgeName(e.target.value)}
-                            placeholder="Dodaj produkt do lodówki..."
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
-                          <button
-                            type="submit"
-                            className="px-4 py-2.5 bg-sky-600 text-white rounded-2xl font-bold active:scale-95"
-                          >
-                            <Icon name="plus" className="w-5 h-5" />
-                          </button>
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={newFridgeAmount}
-                            onChange={(e) => setNewFridgeAmount(e.target.value)}
-                            className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-center"
-                          />
-                          <select
-                            value={newFridgeUnit}
-                            onChange={(e) => setNewFridgeUnit(e.target.value)}
-                            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-slate-700"
-                          >
-                            <option value="szt.">szt.</option>
-                            <option value="g">g</option>
-                            <option value="kg">kg</option>
-                            <option value="ml">ml</option>
-                            <option value="l">l</option>
-                            <option value="opak.">opak.</option>
-                          </select>
-                        </div>
-                      </form>
-                    </div>
+                    <form
+                      onSubmit={handleQuickAddFridge}
+                      className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5"
+                    >
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newFridgeName}
+                          onChange={(e) => setNewFridgeName(e.target.value)}
+                          placeholder="Co macie w lodówce / szafce?"
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                        <button
+                          type="submit"
+                          className="w-11 h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0"
+                          aria-label="Dodaj do lodówki"
+                        >
+                          <Icon name="plus" className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={newFridgeAmount}
+                          onChange={(e) => setNewFridgeAmount(e.target.value)}
+                          className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                          aria-label="Ilość"
+                        />
+                        <select
+                          value={newFridgeUnit}
+                          onChange={(e) => setNewFridgeUnit(e.target.value)}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                          aria-label="Jednostka"
+                        >
+                          <option value="szt.">szt.</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                          <option value="ml">ml</option>
+                          <option value="l">l</option>
+                          <option value="opak.">opak.</option>
+                        </select>
+                        <p className="text-[11px] text-slate-400 flex-1 leading-tight">
+                          Składniki stąd są automatycznie odejmowane przy zakupach z Planera!
+                        </p>
+                      </div>
+                    </form>
 
                     {fridgeItems.length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
-                        <p className="text-3xl mb-2">❄️</p>
+                        <p className="text-4xl mb-2">❄️</p>
                         <p className="text-sm font-bold text-slate-800">Lodówka jest pusta</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Kupione produkty przeniosą się tutaj jednym kliknięciem z koszyka.
+                          Kupione produkty z zakładki Zakupy mogą tu wpadać jednym kliknięciem.
                         </p>
                       </div>
                     ) : (
                       <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 divide-y divide-slate-100">
                         {fridgeItems.map((item) => (
                           <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold text-slate-800 truncate">{item.name}</span>
+                            <span className="text-sm font-semibold text-slate-800 truncate flex-1">
+                              {item.name}
+                            </span>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
                                 onClick={() => updateFridgeAmount(item, -1)}
                                 className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"
+                                aria-label="Zmniejsz ilość"
                               >
                                 <Icon name="minus" className="w-3.5 h-3.5" />
                               </button>
@@ -1683,8 +2683,16 @@
                               <button
                                 onClick={() => updateFridgeAmount(item, 1)}
                                 className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"
+                                aria-label="Zwiększ ilość"
                               >
                                 <Icon name="plus" className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => updateFridgeAmount(item, -(Number(item.amount) || 1))}
+                                className="p-1.5 text-slate-300 hover:text-rose-500"
+                                aria-label="Usuń z lodówki"
+                              >
+                                <Icon name="trash" className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
@@ -1697,85 +2705,59 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 2: OBOWIĄZKI I RYWALIZACJA
+                ZAKŁADKA 2: OBOWIĄZKI (PROSTA LISTA BEZ PUNKTACJI)
                ================================================================== */}
             {activeTab === 'chores' && (
               <div className="space-y-4">
-                {/* Tablica wyników */}
-                <div className="bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-3xl p-4 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-100 flex items-center gap-1.5">
-                      <Icon name="trophy" className="w-4 h-4" />
-                      Wynik tygodnia
-                    </span>
-                    {!confirmResetPoints ? (
-                      <button
-                        onClick={() => setConfirmResetPoints(true)}
-                        className="text-[11px] font-bold bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-xl"
-                      >
-                        Resetuj
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={resetWeeklyPoints}
-                          className="text-[11px] font-bold bg-rose-500 px-2.5 py-1 rounded-xl"
-                        >
-                          Zeruj
-                        </button>
-                        <button
-                          onClick={() => setConfirmResetPoints(false)}
-                          className="text-[11px] font-bold bg-white/20 px-2 py-1 rounded-xl"
-                        >
-                          Anuluj
-                        </button>
-                      </div>
-                    )}
+                {/* Proste podsumowanie postępu */}
+                <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-extrabold text-slate-900">Obowiązki domowe</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {chores.filter(isChoreDue).length === 0
+                          ? 'Wszystko zrobione — macie spokój ✨'
+                          : `Pozostało do ogarnięcia: ${chores.filter(isChoreDue).length} z ${chores.length}`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowAddChoreModal(true)}
+                      className="px-3.5 py-2 bg-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0"
+                    >
+                      <Icon name="plus" className="w-4 h-4" />
+                      Dodaj
+                    </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-3 text-center">
-                      <p className="text-xs font-semibold text-indigo-100">🙋‍♂️ {household.user1Name}</p>
-                      <p className="text-2xl font-black mt-0.5">{household.user1Points || 0} pkt</p>
+                  {chores.length > 0 && (
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.round(((chores.length - chores.filter(isChoreDue).length) / chores.length) * 100)}%`
+                        }}
+                      />
                     </div>
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-3 text-center">
-                      <p className="text-xs font-semibold text-indigo-100">🙋‍♀️ {household.user2Name}</p>
-                      <p className="text-2xl font-black mt-0.5">{household.user2Points || 0} pkt</p>
-                    </div>
-                  </div>
+                  )}
 
-                  <p className="text-xs bg-black/15 rounded-2xl px-3 py-2 text-center font-medium">
-                    🎁 {household.weeklyReward}
-                  </p>
-                </div>
-
-                {/* Filtry + przycisk dodania */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex gap-1.5 bg-white p-1 rounded-2xl border border-slate-200/80">
+                  <div className="flex gap-1.5 bg-slate-50 p-1 rounded-2xl border border-slate-200/70">
                     <button
                       onClick={() => setChoresFilter('due')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                        choresFilter === 'due' ? 'bg-slate-900 text-white' : 'text-slate-600'
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        choresFilter === 'due' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
                       }`}
                     >
                       Do zrobienia ({chores.filter(isChoreDue).length})
                     </button>
                     <button
                       onClick={() => setChoresFilter('all')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                        choresFilter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-600'
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        choresFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
                       }`}
                     >
                       Wszystkie ({chores.length})
                     </button>
                   </div>
-                  <button
-                    onClick={() => setShowAddChoreModal(true)}
-                    className="px-3.5 py-2 bg-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95"
-                  >
-                    <Icon name="plus" className="w-4 h-4" />
-                    Dodaj
-                  </button>
                 </div>
 
                 {/* Lista obowiązków */}
@@ -1793,15 +2775,14 @@
                         <div
                           key={chore.id}
                           className={`bg-white rounded-3xl p-3.5 shadow-sm border flex items-center justify-between gap-2 ${
-                            due ? 'border-slate-200/70' : 'border-emerald-200 bg-emerald-50/30 opacity-75'
+                            due ? 'border-slate-200/70' : 'border-emerald-200 bg-emerald-50/30 opacity-80'
                           }`}
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-bold text-slate-900 leading-snug">{chore.title}</p>
+                            <p className={`text-sm font-bold leading-snug ${due ? 'text-slate-900' : 'line-through text-slate-500'}`}>
+                              {chore.title}
+                            </p>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
-                                +{chore.points || 10} pkt
-                              </span>
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                                 {FREQUENCY_LABELS[chore.frequency] || 'Cykliczne'}
                               </span>
@@ -1814,20 +2795,32 @@
                           </div>
 
                           <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              onClick={() => sendNudge(chore)}
-                              className="p-2 bg-amber-50 text-amber-600 rounded-xl"
-                              title="Szturchnij partnera"
-                            >
-                              <Icon name="bell" className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => completeChore(chore)}
-                              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95"
-                            >
-                              <Icon name="check" className="w-3.5 h-3.5" />
-                              Zrobione
-                            </button>
+                            {due ? (
+                              <>
+                                <button
+                                  onClick={() => sendNudge(chore)}
+                                  className="p-2 bg-amber-50 text-amber-600 rounded-xl"
+                                  title="Przypomnij partnerowi"
+                                >
+                                  <Icon name="bell" className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => completeChore(chore)}
+                                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95"
+                                >
+                                  <Icon name="check" className="w-3.5 h-3.5" />
+                                  Zrobione
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => undoChore(chore)}
+                                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95"
+                              >
+                                <Icon name="rotate" className="w-3.5 h-3.5" />
+                                Cofnij
+                              </button>
+                            )}
                             <button
                               onClick={() => deleteChore(chore)}
                               className="p-2 text-slate-300 hover:text-rose-500"
@@ -1845,7 +2838,7 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 3: PRZEPISY + PLANER TYGODNIA
+                ZAKŁADKA 3: PRZEPISY + PLANER TYGODNIA (ŚNIADANIE, OBIAD, KOLACJA)
                ================================================================== */}
             {activeTab === 'recipes' && (
               <div className="space-y-4">
@@ -1873,7 +2866,7 @@
                           recipesSubTab === 'planner' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'
                         }`}
                       >
-                        {plannedMealsCount}/7
+                        {plannedMealsCount}
                       </span>
                     )}
                   </button>
@@ -1885,35 +2878,35 @@
                       <div>
                         <h2 className="text-lg font-bold text-slate-900 flex items-center gap-1.5">
                           <Icon name="calendar" className="w-5 h-5 text-indigo-600" />
-                          Planer obiadów
+                          Planer posiłków
                         </h2>
                         <p className="text-xs text-slate-500">
-                          Zaplanujcie tydzień razem i wrzućcie brakujące składniki 1 kliknięciem (z odjęciem Lodówki ❄️).
+                          Planujcie śniadania, obiady i kolacje — a brakujące składniki wrzućcie na zakupy 1 kliknięciem (z odjęciem Lodówki ❄️).
                         </p>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={openWeeklyPlanShoppingModal}
-                          disabled={plannedMealsCount === 0}
+                          disabled={uncookedPlannedMealsCount === 0}
                           className="flex-1 min-w-[190px] py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-45 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
                         >
                           <Icon name="cart" className="w-4 h-4" />
-                          Wrzuć zakupy ({WEEK_DAYS.filter((d) => mealPlan[d.id]?.recipeId && !mealPlan[d.id]?.cooked).length})
+                          Wrzuć zakupy ({uncookedPlannedMealsCount})
                         </button>
                         <button
-                          onClick={randomizeMissingMealDays}
+                          onClick={randomizeMissingLunches}
                           className="py-3 px-3.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-2xl text-xs font-bold flex items-center gap-1.5 active:scale-95"
                         >
                           <Icon name="shuffle" className="w-4 h-4" />
-                          Wylosuj puste
+                          Wylosuj obiady
                         </button>
                       </div>
 
                       {plannedMealsCount > 0 && (
                         <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                           <span className="text-[11px] font-medium text-slate-500">
-                            Zaplanowano {plannedMealsCount} z 7 dni
+                            Zaplanowano: {formatMealCount(plannedMealsCount)}
                           </span>
                           {!confirmClearPlan ? (
                             <button
@@ -1943,27 +2936,21 @@
                       )}
                     </div>
 
-                    {/* 7 DNI TYGODNIA */}
-                    <div className="space-y-2.5">
+                    {/* 7 DNI TYGODNIA — KAŻDY DZIEŃ MA ŚNIADANIE, OBIAD I KOLACJĘ */}
+                    <div className="space-y-3">
                       {WEEK_DAYS.map((day) => {
-                        const entry = mealPlan[day.id];
+                        const dayMeals = getDayMeals(mealPlan, day.id);
                         const isToday = day.jsDay === todayJsDay;
-                        const linkedRecipe = entry
-                          ? recipes.find(
-                              (r) =>
-                                r.id === entry.recipeId ||
-                                (entry.starterId && (r.id === entry.starterId || r.starterId === entry.starterId))
-                            )
-                          : null;
+                        const dayCount = MEAL_SLOTS.filter((s) => dayMeals[s.id]?.title).length;
 
                         return (
                           <div
                             key={day.id}
-                            className={`bg-white rounded-3xl p-3.5 shadow-sm border transition-all ${
+                            className={`bg-white rounded-3xl p-3.5 shadow-sm border space-y-2.5 ${
                               isToday ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-slate-200/70'
-                            } ${entry?.cooked ? 'opacity-70 bg-emerald-50/20' : ''}`}
+                            }`}
                           >
-                            <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2">
                                 <span
                                   className={`text-xs font-extrabold px-2.5 py-1 rounded-xl ${
@@ -1977,108 +2964,146 @@
                                     Dziś
                                   </span>
                                 )}
-                                {entry?.cooked && (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                                    ✅ Ugotowane
-                                  </span>
-                                )}
                               </div>
-
-                              {entry && (
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => updateMealPlanDay(day.id, { cooked: !entry.cooked })}
-                                    className={`p-1.5 rounded-xl border text-xs ${
-                                      entry.cooked
-                                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                                        : 'bg-slate-50 border-slate-200 text-slate-500'
-                                    }`}
-                                  >
-                                    <Icon name="check" className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => setPlannerPickerDay(day.id)}
-                                    className="px-2 py-1 text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 rounded-xl"
-                                  >
-                                    Zmień
-                                  </button>
-                                  <button
-                                    onClick={() => removeMealPlanDay(day.id)}
-                                    className="p-1.5 text-slate-300 hover:text-rose-500 rounded-xl"
-                                  >
-                                    <Icon name="trash" className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              )}
+                              <span className="text-[11px] font-semibold text-slate-400">
+                                {dayCount}/3 posiłki
+                              </span>
                             </div>
 
-                            {entry ? (
-                              <div className="flex items-center justify-between gap-3">
-                                <button
-                                  onClick={() => {
-                                    if (linkedRecipe) {
-                                      const baseServ = Number(linkedRecipe.servings) || 2;
-                                      setSelectedRecipeId(linkedRecipe.id);
-                                      setPortionMultiplier(
-                                        Math.max(0.5, (Number(entry.servings) || baseServ) / baseServ)
-                                      );
-                                      setCheckedSteps({});
-                                    }
-                                  }}
-                                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                                >
-                                  <div className="w-11 h-11 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl shrink-0">
-                                    {entry.emoji || '🍽️'}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p
-                                      className={`text-sm font-bold leading-snug truncate ${
-                                        entry.cooked ? 'line-through text-slate-500' : 'text-slate-900'
-                                      }`}
-                                    >
-                                      {entry.title}
-                                    </p>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">
-                                      ⏱ {entry.prepTime || 25} min • Kliknij po przepis
-                                    </p>
-                                  </div>
-                                </button>
+                            <div className="space-y-2">
+                              {MEAL_SLOTS.map((slot) => {
+                                const entry = dayMeals[slot.id];
+                                const linkedRecipe =
+                                  entry && (entry.recipeId || entry.starterId)
+                                    ? recipes.find(
+                                        (r) =>
+                                          r.id === entry.recipeId ||
+                                          (entry.starterId && (r.id === entry.starterId || r.starterId === entry.starterId))
+                                      )
+                                    : null;
 
-                                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-                                  <button
-                                    onClick={() =>
-                                      updateMealPlanDay(day.id, {
-                                        servings: Math.max(1, (Number(entry.servings) || 2) - 1)
-                                      })
-                                    }
-                                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600"
+                                return (
+                                  <div
+                                    key={slot.id}
+                                    className={`rounded-2xl p-2.5 border transition-all ${
+                                      entry
+                                        ? entry.cooked
+                                          ? 'bg-emerald-50/40 border-emerald-200/80 opacity-75'
+                                          : 'bg-slate-50/80 border-slate-200/80'
+                                        : 'bg-white border-dashed border-slate-200'
+                                    }`}
                                   >
-                                    <Icon name="minus" className="w-3 h-3" />
-                                  </button>
-                                  <span className="text-[11px] font-extrabold text-indigo-700 px-1 min-w-[2.4rem] text-center">
-                                    {entry.servings || 2} por.
-                                  </span>
-                                  <button
-                                    onClick={() =>
-                                      updateMealPlanDay(day.id, {
-                                        servings: Math.min(12, (Number(entry.servings) || 2) + 1)
-                                      })
-                                    }
-                                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600"
-                                  >
-                                    <Icon name="plus" className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setPlannerPickerDay(day.id)}
-                                className="w-full py-3 border-2 border-dashed border-slate-200 hover:border-indigo-300 rounded-2xl text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center justify-center gap-1.5"
-                              >
-                                <Icon name="calendarPlus" className="w-4 h-4" />
-                                Zaplanuj obiad na {day.label.toLowerCase()}
-                              </button>
-                            )}
+                                    {entry ? (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg border ${slot.badge}`}>
+                                            {slot.emoji} {slot.label}
+                                          </span>
+                                          <div className="flex items-center gap-1">
+                                            <button
+                                              onClick={() => updateMealPlanSlot(day.id, slot.id, { cooked: !entry.cooked })}
+                                              className={`p-1 rounded-lg border ${
+                                                entry.cooked
+                                                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                                                  : 'bg-white border-slate-200 text-slate-400'
+                                              }`}
+                                              title={entry.cooked ? 'Oznacz jako nieprzygotowane' : 'Oznacz jako gotowe'}
+                                            >
+                                              <Icon name="check" className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                              onClick={() => setPlannerPickerTarget({ dayId: day.id, slotId: slot.id })}
+                                              className="px-2 py-0.5 text-[11px] font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                            >
+                                              Zmień
+                                            </button>
+                                            <button
+                                              onClick={() => removeMealPlanSlot(day.id, slot.id)}
+                                              className="p-1 text-slate-300 hover:text-rose-500 rounded-lg"
+                                              aria-label="Usuń posiłek"
+                                            >
+                                              <Icon name="trash" className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              if (linkedRecipe) {
+                                                const baseServ = Number(linkedRecipe.servings) || 2;
+                                                setSelectedRecipeId(linkedRecipe.id);
+                                                setPortionMultiplier(
+                                                  Math.max(0.5, (Number(entry.servings) || baseServ) / baseServ)
+                                                );
+                                                setCheckedSteps({});
+                                              }
+                                            }}
+                                            className={`flex items-center gap-2.5 flex-1 min-w-0 text-left ${linkedRecipe ? 'cursor-pointer' : 'cursor-default'}`}
+                                          >
+                                            <span className="text-xl shrink-0">{entry.emoji || slot.emoji}</span>
+                                            <div className="min-w-0">
+                                              <p
+                                                className={`text-xs font-bold leading-snug truncate ${
+                                                  entry.cooked ? 'line-through text-slate-500' : 'text-slate-900'
+                                                }`}
+                                              >
+                                                {entry.title}
+                                              </p>
+                                              <p className="text-[10px] text-slate-500">
+                                                {linkedRecipe
+                                                  ? `⏱ ${entry.prepTime || 25} min • Kliknij po przepis`
+                                                  : 'Własny wpis'}
+                                              </p>
+                                            </div>
+                                          </button>
+
+                                          {linkedRecipe && (
+                                            <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-0.5 shrink-0">
+                                              <button
+                                                onClick={() =>
+                                                  updateMealPlanSlot(day.id, slot.id, {
+                                                    servings: Math.max(1, (Number(entry.servings) || 2) - 1)
+                                                  })
+                                                }
+                                                className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600"
+                                              >
+                                                <Icon name="minus" className="w-3 h-3" />
+                                              </button>
+                                              <span className="text-[11px] font-extrabold text-indigo-700 px-1 min-w-[2.2rem] text-center">
+                                                {entry.servings || 2} p.
+                                              </span>
+                                              <button
+                                                onClick={() =>
+                                                  updateMealPlanSlot(day.id, slot.id, {
+                                                    servings: Math.min(12, (Number(entry.servings) || 2) + 1)
+                                                  })
+                                                }
+                                                className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600"
+                                              >
+                                                <Icon name="plus" className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => setPlannerPickerTarget({ dayId: day.id, slotId: slot.id })}
+                                        className="w-full py-1 px-1 flex items-center justify-between text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
+                                      >
+                                        <span className="flex items-center gap-1.5">
+                                          <span>{slot.emoji}</span>
+                                          <span>Dodaj: {slot.label.toLowerCase()}</span>
+                                        </span>
+                                        <Icon name="plus" className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         );
                       })}
@@ -2087,14 +3112,22 @@
                 ) : (
                   /* PODZAKŁADKA: BAZA PRZEPISÓW */
                   <>
-                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-3">
+                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-2.5">
+                      <button
+                        onClick={() => setImportModalMode('image')}
+                        className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-all"
+                      >
+                        <Icon name="camera" className="w-4 h-4" />
+                        Wgraj zrzut ekranu z przepisem (IG / TikTok / www)
+                      </button>
+
                       <div className="grid grid-cols-2 gap-2">
                         <button
-                          onClick={() => setShowImportModal(true)}
-                          className="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                          onClick={() => setImportModalMode('manual')}
+                          className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                         >
                           <Icon name="sparkles" className="w-4 h-4" />
-                          Dodaj / AI
+                          Własny / Tekst / AI
                         </button>
                         <button
                           onClick={() => setShowMatchModal(true)}
@@ -2215,7 +3248,7 @@
               {[
                 { id: 'shopping', label: 'Zakupy', icon: 'cart', badge: uncheckedShopping.length },
                 { id: 'chores', label: 'Obowiązki', icon: 'checkSquare', badge: chores.filter(isChoreDue).length },
-                { id: 'recipes', label: 'Przepisy', icon: 'utensils', badge: plannedMealsCount > 0 ? `${plannedMealsCount}/7` : 0 }
+                { id: 'recipes', label: 'Przepisy', icon: 'utensils', badge: plannedMealsCount > 0 ? plannedMealsCount : 0 }
               ].map((tab) => {
                 const active = activeTab === tab.id;
                 return (
@@ -2281,6 +3314,29 @@
                 </div>
 
                 <div className="p-4 overflow-y-auto space-y-4 flex-1">
+                  {selectedRecipe.screenshotUrl && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                          📸 Zrzut ekranu przepisu
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setZoomedScreenshot(selectedRecipe.screenshotUrl)}
+                          className="text-xs font-bold text-indigo-600"
+                        >
+                          Powiększ na cały ekran
+                        </button>
+                      </div>
+                      <img
+                        src={selectedRecipe.screenshotUrl}
+                        alt={selectedRecipe.title}
+                        onClick={() => setZoomedScreenshot(selectedRecipe.screenshotUrl)}
+                        className="w-full max-h-72 object-contain rounded-2xl border border-slate-200 bg-slate-50 cursor-pointer"
+                      />
+                    </div>
+                  )}
+
                   {selectedRecipe.note && (
                     <p className="text-xs text-indigo-800 bg-indigo-50 rounded-2xl p-3">
                       💡 {selectedRecipe.note}
@@ -2350,42 +3406,42 @@
                               {done ? '✓' : i + 1}
                             </span>
                             <span className={`text-sm leading-relaxed ${done ? 'line-through text-slate-500' : 'text-slate-800'}`}>
-                              {step}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
+          {importModalMode && (
+            <RecipeImportModal
+              initialMode={importModalMode}
+              geminiApiKey={geminiApiKey}
+              fridgeItems={fridgeItems}
+              onSave={saveNewRecipe}
+              onSaveGeminiKey={(k) => {
+                setGeminiApiKey(k);
+                showToast('Zapisano klucz AI ✨');
+              }}
+              onOpenSettings={() => {
+                setImportModalMode(null);
+                setShowSettingsModal(true);
+              }}
+              onClose={() => setImportModalMode(null)}
+            />
+          )}
 
-                {/* Stopka z akcjami */}
-                <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center gap-2 safe-bottom">
-                  {!String(selectedRecipe.id || '').startsWith('starter-') && !selectedRecipe.starterId && (
-                    <button
-                      onClick={() => deleteRecipe(selectedRecipe)}
-                      className="p-3 bg-white border border-slate-200 text-rose-500 rounded-2xl"
-                      title="Usuń przepis"
-                    >
-                      <Icon name="trash" className="w-5 h-5" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setScheduleRecipeModal(selectedRecipe)}
-                    className="px-3.5 py-3 bg-white border border-indigo-200 text-indigo-700 rounded-2xl text-xs font-bold flex items-center gap-1.5 shrink-0"
-                  >
-                    <Icon name="calendarPlus" className="w-4 h-4" />
-                    Zaplanuj
-                  </button>
-                  <button
-                    onClick={() => openRecipeIngredientsModal(selectedRecipe, portionMultiplier)}
-                    className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    <Icon name="cart" className="w-4 h-4" />
-                    Na zakupy
-                  </button>
-                </div>
-              </div>
+          {zoomedScreenshot && (
+            <div
+              onClick={() => setZoomedScreenshot(null)}
+              className="fixed inset-0 z-[90] bg-black/90 flex flex-col items-center justify-center p-4"
+            >
+              <button
+                type="button"
+                onClick={() => setZoomedScreenshot(null)}
+                className="self-end mb-3 px-3.5 py-2 bg-white/15 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5"
+              >
+                <Icon name="x" className="w-4 h-4" />
+                Zamknij
+              </button>
+              <img
+                src={zoomedScreenshot}
+                alt="Powiększony przepis"
+                className="max-w-full max-h-[82vh] object-contain rounded-2xl"
+              />
             </div>
           )}
 
@@ -2471,8 +3527,6 @@
           {/* MODALE POMOCNICZE */}
           {showAddChoreModal && (
             <AddChoreModal
-              user1Name={household.user1Name}
-              user2Name={household.user2Name}
               onClose={() => setShowAddChoreModal(false)}
               onAdd={handleAddChore}
             />
@@ -2507,15 +3561,15 @@
             />
           )}
 
-          {plannerPickerDay && (
+          {plannerPickerTarget && (
             <MealPlannerPickerModal
-              dayId={plannerPickerDay}
+              target={plannerPickerTarget}
               recipes={recipes}
-              onSelect={async (recipe, servingsCount) => {
-                await assignRecipeToDay(plannerPickerDay, recipe, servingsCount);
-                setPlannerPickerDay(null);
+              onSelect={async (recipeOrCustom, servingsCount) => {
+                await assignMealToSlot(plannerPickerTarget.dayId, plannerPickerTarget.slotId, recipeOrCustom, servingsCount);
+                setPlannerPickerTarget(null);
               }}
-              onClose={() => setPlannerPickerDay(null)}
+              onClose={() => setPlannerPickerTarget(null)}
             />
           )}
 
@@ -2524,8 +3578,8 @@
               recipe={scheduleRecipeModal}
               mealPlan={mealPlan}
               todayJsDay={todayJsDay}
-              onAssign={async (dayId, servingsCount) => {
-                await assignRecipeToDay(dayId, scheduleRecipeModal, servingsCount);
+              onAssign={async (dayId, slotId, servingsCount) => {
+                await assignMealToSlot(dayId, slotId, scheduleRecipeModal, servingsCount);
                 setScheduleRecipeModal(null);
               }}
               onClose={() => setScheduleRecipeModal(null)}
@@ -2559,214 +3613,74 @@
     }
 
     // ============================================================================
-    // MODAL: DODAWANIE OBOWIĄZKU
+    // MODAL: DODAWANIE PRZEPISU (ZRZUT EKRANU 1-KLIK + WŁASNY + IMPORT AI)
     // ============================================================================
-    function AddChoreModal({ user1Name, user2Name, onClose, onAdd }) {
-      const [title, setTitle] = useState('');
-      const [points, setPoints] = useState('15');
-      const [frequency, setFrequency] = useState('co_tydzien');
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!title.trim()) return;
-        onAdd({
-          title: title.trim(),
-          points: Math.max(5, parseInt(points, 10) || 10),
-          frequency,
-          assignedTo: 'both'
-        });
-      };
-
-      return (
-        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl safe-bottom"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900">Nowy obowiązek</h3>
-              <button type="button" onClick={onClose} className="p-2 bg-slate-100 rounded-xl text-slate-500">
-                <Icon name="x" className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-600">Nazwa zadania</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="np. Mycie okien, podlanie kwiatków"
-                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-xs font-bold text-slate-600">Punkty</label>
-                  <select
-                    value={points}
-                    onChange={(e) => setPoints(e.target.value)}
-                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5"
-                  >
-                    <option value="5">5 pkt (drobiazg)</option>
-                    <option value="10">10 pkt (szybkie)</option>
-                    <option value="15">15 pkt (średnie)</option>
-                    <option value="20">20 pkt (większe)</option>
-                    <option value="30">30 pkt (grube sprzątanie)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600">Częstotliwość</label>
-                  <select
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5"
-                  >
-                    {Object.entries(FREQUENCY_LABELS).map(([k, lbl]) => (
-                      <option key={k} value={k}>{lbl}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold shadow-sm"
-            >
-              Dodaj obowiązek
-            </button>
-          </form>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // MODAL: TINDER NA OBIAD
-    // ============================================================================
-    function TinderMatchModal({ recipes, activeProfile, user1Name, user2Name, onVote, onReset, onSchedule, onClose }) {
-      const unvoted = recipes.filter((r) => !r.votes?.[activeProfile]);
-      const matches = recipes.filter((r) => r.votes?.user1 === 'yes' && r.votes?.user2 === 'yes');
-      const current = unvoted[0];
-
-      return (
-        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto safe-bottom">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-base text-slate-900">🔥 Tinder na obiad</h3>
-                <p className="text-xs text-slate-500">
-                  Głosujesz jako: <strong>{activeProfile === 'user1' ? user1Name : user2Name}</strong>
-                </p>
-              </div>
-              <button onClick={onClose} className="p-2 bg-slate-100 rounded-xl text-slate-500">
-                <Icon name="x" className="w-4 h-4" />
-              </button>
-            </div>
-
-            {current ? (
-              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center space-y-4">
-                <div className="text-5xl">{current.emoji || '🍽️'}</div>
-                <div>
-                  <h4 className="text-lg font-extrabold text-slate-900">{current.title}</h4>
-                  <p className="text-xs text-slate-500 mt-1">
-                    ⏱ {current.prepTime || 25} min • 👥 {current.servings || 2} porcje
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <button
-                    onClick={() => onVote(current, 'no')}
-                    className="py-3.5 bg-white border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold active:scale-95"
-                  >
-                    👎 Nie dziś
-                  </button>
-                  <button
-                    onClick={() => onVote(current, 'yes')}
-                    className="py-3.5 bg-rose-500 text-white rounded-2xl text-sm font-bold shadow-sm active:scale-95"
-                  >
-                    ❤️ Mam ochotę!
-                  </button>
-                </div>
-                <p className="text-[11px] text-slate-400">Pozostało do oceny: {unvoted.length}</p>
-              </div>
-            ) : (
-              <div className="bg-slate-50 rounded-3xl p-6 text-center space-y-2">
-                <p className="text-3xl">🎉</p>
-                <p className="text-sm font-bold text-slate-800">Oceniono wszystkie przepisy!</p>
-                <button
-                  onClick={onReset}
-                  className="mt-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold inline-flex items-center gap-1.5"
-                >
-                  <Icon name="rotate" className="w-3.5 h-3.5" />
-                  Zacznij głosowanie od nowa
-                </button>
-              </div>
-            )}
-
-            {matches.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-extrabold text-rose-600 uppercase tracking-wider">
-                  🔥 Wasze wspólne Matche ({matches.length})
-                </p>
-                {matches.map((m) => (
-                  <div key={m.id} className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-900 truncate">
-                      {m.emoji} {m.title}
-                    </span>
-                    <button
-                      onClick={() => onSchedule(m)}
-                      className="px-2.5 py-1 bg-rose-500 text-white rounded-xl text-[11px] font-bold shrink-0"
-                    >
-                      Zaplanuj
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // MODAL: DODAWANIE PRZEPISU (WŁASNY + OPCJONALNY IMPORT AI)
-    // ============================================================================
-    function RecipeImportModal({ geminiApiKey, fridgeItems, onSave, onOpenSettings, onClose }) {
-      const [mode, setMode] = useState('manual'); // manual | image | text | ai
+    function RecipeImportModal({ initialMode = 'manual', geminiApiKey, fridgeItems, onSave, onSaveGeminiKey, onOpenSettings, onClose }) {
+      const [mode, setMode] = useState(initialMode); // image | manual | text | ai
       const [loading, setLoading] = useState(false);
       const [errorMsg, setErrorMsg] = useState('');
 
       // Formularz własny
       const [title, setTitle] = useState('');
       const [emoji, setEmoji] = useState('🍽️');
-      const [prepTime, setPrepTime] = useState('30');
+      const [prepTime, setPrepTime] = useState('25');
       const [servings, setServings] = useState('2');
       const [tags, setTags] = useState(['klasyki']);
       const [ingredients, setIngredients] = useState([{ name: '', amount: '1', unit: 'szt.' }]);
       const [stepsText, setStepsText] = useState('');
 
-      // AI inputy
+      // Zrzut ekranu i AI inputy
       const [imagePreview, setImagePreview] = useState('');
       const [imageBase64, setImageBase64] = useState('');
       const [imageMime, setImageMime] = useState('image/jpeg');
+      const [storageScreenshotUrl, setStorageScreenshotUrl] = useState('');
+      const [quickShotTitle, setQuickShotTitle] = useState('');
+      const [quickShotTag, setQuickShotTag] = useState('klasyki');
+      const [inlineKeyInput, setInlineKeyInput] = useState('');
       const [rawText, setRawText] = useState('');
       const [aiPrompt, setAiPrompt] = useState('');
+
+      const toggleTag = (tagId) => {
+        setTags((prev) => (prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]));
+      };
 
       const handleFile = async (e) => {
         const f = e.target.files?.[0];
         if (!f) return;
         setErrorMsg('');
         try {
-          const c = await compressImageFile(f);
-          setImagePreview(c.dataUrl);
-          setImageBase64(c.base64);
-          setImageMime(c.mime);
+          const [forAi, forStorage] = await Promise.all([
+            compressImageFile(f, 1200, 0.8),
+            compressImageFile(f, 750, 0.62)
+          ]);
+          setImagePreview(forAi.dataUrl);
+          setImageBase64(forAi.base64);
+          setImageMime(forAi.mime);
+          setStorageScreenshotUrl(forStorage.dataUrl);
         } catch (err) {
           setErrorMsg(err.message);
         }
+      };
+
+      const handleSaveScreenshotDirectly = async () => {
+        setErrorMsg('');
+        if (!storageScreenshotUrl) {
+          setErrorMsg('Najpierw wybierz zrzut ekranu z galerii iPhone’a.');
+          return;
+        }
+        const finalTitle = quickShotTitle.trim() || `Przepis ze zrzutu (${new Date().toLocaleDateString('pl-PL')})`;
+        await onSave({
+          title: finalTitle,
+          emoji: '📸',
+          prepTime: 25,
+          servings: 2,
+          tags: [quickShotTag || 'klasyki'],
+          source: 'Zrzut ekranu',
+          screenshotUrl: storageScreenshotUrl,
+          note: 'Kliknij zdjęcie powyżej, aby powiększyć przepis na cały ekran podczas gotowania.',
+          ingredients: [],
+          steps: ['Otwórz powiększony zrzut ekranu powyżej i przygotuj danie krok po kroku.']
+        });
       };
 
       const handleSaveManual = async (e) => {
@@ -2782,7 +3696,10 @@
             category: guessShoppingCategory(i.name),
             isPantry: /(sól|pieprz|olej|oliw|przypraw|cukier|woda)/i.test(i.name)
           }));
-        if (parsedIngs.length === 0) { setErrorMsg('Dodaj przynajmniej jeden składnik.'); return; }
+        if (parsedIngs.length === 0 && !storageScreenshotUrl) {
+          setErrorMsg('Dodaj przynajmniej jeden składnik.');
+          return;
+        }
         const steps = stepsText.split('\n').map((s) => s.trim()).filter(Boolean);
         await onSave({
           title: title.trim(),
@@ -2790,64 +3707,89 @@
           prepTime: Math.max(1, parseInt(prepTime, 10) || 25),
           servings: Math.max(1, parseInt(servings, 10) || 2),
           tags: tags.length > 0 ? tags : ['klasyki'],
-          source: 'Własny przepis',
+          source: storageScreenshotUrl ? 'Zrzut ekranu + AI' : 'Własny przepis',
+          screenshotUrl: storageScreenshotUrl || '',
           ingredients: parsedIngs,
           steps: steps.length > 0 ? steps : ['Przygotuj składniki i ugotuj danie.']
         });
       };
 
-      const runAI = async () => {
+      const runAI = async (overrideKey = null) => {
         setErrorMsg('');
-        if (!geminiApiKey) {
-          setErrorMsg('Aby korzystać z AI, wklej darmowy klucz Google AI Studio w Ustawieniach.');
+        const activeKey = (overrideKey !== null ? overrideKey : geminiApiKey).trim();
+        if (!activeKey) {
+          setErrorMsg('Wklej poniżej swój darmowy klucz Google AI Studio (albo zapisz sam zrzut bez AI).');
           return;
         }
-        if (mode === 'image' && !imageBase64) { setErrorMsg('Wybierz zrzut ekranu z galerii.'); return; }
+        if (mode === 'image' && !imageBase64) { setErrorMsg('Najpierw wybierz zrzut ekranu z galerii.'); return; }
         if (mode === 'text' && !rawText.trim()) { setErrorMsg('Wklej tekst przepisu.'); return; }
 
         setLoading(true);
         try {
-          const sys = 'Jesteś polskim asystentem kulinarnym. Zwróć WYŁĄCZNIE poprawny JSON bez markdownu o polach: title (string), emoji (string), prepTime (number), servings (number), tags (array z listy: szybkie, makarony, miesne, vege, jednogarnkowe, klasyki), note (string), ingredients (array obiektów {name, amount (number), unit, isPantry (boolean)}), steps (array stringów po polsku).';
+          const sys = 'Jesteś polskim asystentem kulinarnym. Odczytuj lub twórz sprawdzone polskie przepisy domowe. Zwróć WYŁĄCZNIE poprawny obiekt JSON zgodny ze schematem.';
           const parts = [];
           if (mode === 'image') {
-            parts.push({ text: 'Odczytaj kompletny przepis ze zdjęcia po polsku i zwróć czysty JSON.' });
+            parts.push({ text: 'Odczytaj dokładnie cały przepis ze zdjęcia (zrzutu ekranu z Instagrama, TikToka lub strony jak Ania Gotuje). Podaj tytuł, emoji, czas, porcje, pasujące tagi z dozwolonej listy, wszystkie składniki z ilościami oraz jasne kroki przygotowania po polsku.' });
             parts.push({ inlineData: { mimeType: imageMime, data: imageBase64 } });
           } else if (mode === 'text') {
-            parts.push({ text: `Zamień poniższy opis w uporządkowany przepis JSON:\n\n${rawText.trim()}` });
+            parts.push({ text: `Zamień poniższy opis w uporządkowany polski przepis:\n\n${rawText.trim()}` });
           } else {
             const fridgeList = fridgeItems.map((f) => f.name).join(', ');
             parts.push({
-              text: `Wymyśl pyszny domowy obiad dla 2 osób po polsku. ${
-                aiPrompt.trim() ? `Wykorzystaj: ${aiPrompt.trim()}.` : fridgeList ? `Mamy w lodówce: ${fridgeList}.` : 'Zaproponuj coś ciekawego.'
-              } Zwróć czysty JSON.`
+              text: `Wymyśl pyszny domowy posiłek dla 2 osób po polsku. ${
+                aiPrompt.trim() ? `Wykorzystaj: ${aiPrompt.trim()}.` : fridgeList ? `Mamy w lodówce: ${fridgeList}.` : 'Zaproponuj coś pysznego i prostego.'
+              }`
             });
           }
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                systemInstruction: { parts: [{ text: sys }] },
-                contents: [{ role: 'user', parts }],
-                generationConfig: { responseMimeType: 'application/json' }
-              })
+          const payload = {
+            systemInstruction: { parts: [{ text: sys }] },
+            contents: [{ role: 'user', parts }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                  title: { type: 'STRING' },
+                  emoji: { type: 'STRING' },
+                  prepTime: { type: 'NUMBER' },
+                  servings: { type: 'NUMBER' },
+                  tags: { type: 'ARRAY', items: { type: 'STRING' } },
+                  note: { type: 'STRING' },
+                  ingredients: {
+                    type: 'ARRAY',
+                    items: {
+                      type: 'OBJECT',
+                      properties: {
+                        name: { type: 'STRING' },
+                        amount: { type: 'NUMBER' },
+                        unit: { type: 'STRING' },
+                        isPantry: { type: 'BOOLEAN' }
+                      },
+                      required: ['name', 'amount', 'unit']
+                    }
+                  },
+                  steps: { type: 'ARRAY', items: { type: 'STRING' } }
+                },
+                required: ['title', 'ingredients', 'steps']
+              }
             }
-          );
-          if (!res.ok) throw new Error('Błąd API Gemini — sprawdź klucz w Ustawieniach.');
-          const data = await res.json();
+          };
+
+          const data = await fetchGeminiWithBackoff(activeKey, payload);
           const txt = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
           const first = txt.indexOf('{');
           const last = txt.lastIndexOf('}');
           const parsed = JSON.parse(txt.slice(first, last + 1));
 
-          // Przerzuć wynik AI do formularza ręcznego do podglądu i zapisu
-          setTitle(parsed.title || 'Nowy przepis');
+          const validTagIds = new Set(RECIPE_TAGS.map((t) => t.id));
+          const cleanTags = (parsed.tags || []).filter((t) => validTagIds.has(t));
+
+          setTitle(parsed.title || quickShotTitle || 'Nowy przepis');
           setEmoji(parsed.emoji || '🍽️');
           setPrepTime(String(parsed.prepTime || 25));
           setServings(String(parsed.servings || 2));
-          setTags(Array.isArray(parsed.tags) && parsed.tags.length ? parsed.tags : ['klasyki']);
+          setTags(cleanTags.length ? cleanTags : [quickShotTag || 'klasyki']);
           setIngredients(
             (parsed.ingredients || []).map((i) => ({
               name: i.name || '',
@@ -2858,7 +3800,7 @@
           setStepsText((parsed.steps || []).join('\n'));
           setMode('manual');
         } catch (err) {
-          setErrorMsg(err.message || 'Nie udało się wygenerować przepisu.');
+          setErrorMsg(err.message || 'Nie udało się odczytać przepisu z tego źródła.');
         } finally {
           setLoading(false);
         }
@@ -2876,8 +3818,8 @@
 
             <div className="px-4 pt-3 flex gap-1.5 overflow-x-auto no-scrollbar">
               {[
+                { id: 'image', label: '📸 Zrzut ekranu' },
                 { id: 'manual', label: '✏️ Własne' },
-                { id: 'image', label: '📸 Ze zdjęcia' },
                 { id: 'text', label: '📝 Z tekstu' },
                 { id: 'ai', label: '✨ Pomysł AI' }
               ].map((m) => (
@@ -2895,18 +3837,22 @@
 
             <div className="p-4 overflow-y-auto flex-1 space-y-3">
               {errorMsg && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 flex items-center justify-between gap-2">
-                  <span>{errorMsg}</span>
-                  {!geminiApiKey && mode !== 'manual' && (
-                    <button onClick={onOpenSettings} className="px-2 py-1 bg-rose-600 text-white rounded-lg font-bold shrink-0">
-                      Ustawienia
-                    </button>
-                  )}
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700">
+                  {errorMsg}
                 </div>
               )}
 
               {mode === 'manual' ? (
                 <form id="manual-recipe-form" onSubmit={handleSaveManual} className="space-y-3">
+                  {storageScreenshotUrl && (
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2.5">
+                      <img src={storageScreenshotUrl} alt="Miniatura" className="w-12 h-12 object-cover rounded-xl shrink-0" />
+                      <p className="text-xs font-semibold text-emerald-800">
+                        ✅ Zrzut ekranu odczytany! Sprawdź dane niżej i kliknij „Zapisz przepis”.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -2939,6 +3885,27 @@
                       placeholder="Porcje"
                       className="bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2"
                     />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-slate-600">Kategorie</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {RECIPE_TAGS.map((t) => {
+                        const active = tags.includes(t.id);
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => toggleTag(t.id)}
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                              active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {t.emoji} {t.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -2996,14 +3963,88 @@
                 </form>
               ) : mode === 'image' ? (
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-500">
-                    Zrób zrzut ekranu przepisu z Instagrama / TikToka i wgraj z galerii iPhone’a — AI wyciągnie składniki i kroki.
-                  </p>
-                  <label className="block w-full py-6 border-2 border-dashed border-slate-300 rounded-2xl text-center text-xs font-bold text-indigo-600 cursor-pointer">
-                    📸 Wybierz zdjęcie z iPhone’a
+                  <label className="block w-full py-7 px-4 border-2 border-dashed border-indigo-300 bg-indigo-50/40 hover:bg-indigo-50 rounded-3xl text-center cursor-pointer transition-colors">
+                    <span className="text-3xl block mb-1.5">📸</span>
+                    <span className="text-sm font-extrabold text-indigo-700 block">
+                      {imagePreview ? 'Zmień zrzut ekranu' : 'Wybierz zrzut ekranu z iPhone’a'}
+                    </span>
+                    <span className="text-[11px] text-slate-500 block mt-0.5">
+                      Instagram, TikTok, Ania Gotuje lub zdjęcie z książki kucharskiej
+                    </span>
                     <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
                   </label>
-                  {imagePreview && <img src={imagePreview} alt="Podgląd" className="w-full max-h-48 object-contain rounded-2xl" />}
+
+                  {imagePreview && (
+                    <div className="space-y-3">
+                      <img
+                        src={imagePreview}
+                        alt="Podgląd zrzutu"
+                        className="w-full max-h-56 object-contain rounded-2xl border border-slate-200 bg-slate-50"
+                      />
+
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 space-y-2">
+                        <input
+                          type="text"
+                          value={quickShotTitle}
+                          onChange={(e) => setQuickShotTitle(e.target.value)}
+                          placeholder="Nazwa przepisu (np. Ciasto marchewkowe)"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2"
+                        />
+                        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                          {RECIPE_TAGS.map((t) => (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => setQuickShotTag(t.id)}
+                              className={`px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap ${
+                                quickShotTag === t.id ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600'
+                              }`}
+                            >
+                              {t.emoji} {t.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {!geminiApiKey && (
+                        <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-3 space-y-2">
+                          <p className="text-[11px] text-indigo-900 leading-relaxed">
+                            💡 Chcesz, żeby <strong>AI samo przepisało składniki na listę zakupów</strong>? Wklej tu raz darmowy klucz z{' '}
+                            <a
+                              href="https://aistudio.google.com/apikey"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline font-bold"
+                            >
+                              aistudio.google.com/apikey
+                            </a>{' '}
+                            (0 zł) — albo kliknij niżej „Zapisz sam zrzut bez AI”.
+                          </p>
+                          <div className="flex gap-1.5">
+                            <input
+                              type="password"
+                              value={inlineKeyInput}
+                              onChange={(e) => setInlineKeyInput(e.target.value)}
+                              placeholder="AIzaSy..."
+                              className="flex-1 bg-white border border-indigo-200 rounded-xl px-3 py-1.5"
+                            />
+                            <button
+                              type="button"
+                              disabled={!inlineKeyInput.trim() || loading}
+                              onClick={() => {
+                                const k = inlineKeyInput.trim();
+                                if (onSaveGeminiKey) onSaveGeminiKey(k);
+                                runAI(k);
+                              }}
+                              className="px-3 py-1.5 bg-indigo-600 disabled:opacity-45 text-white rounded-xl text-xs font-bold shrink-0"
+                            >
+                              Zapisz i AI
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : mode === 'text' ? (
                 <textarea
@@ -3029,7 +4070,7 @@
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-100 safe-bottom">
+            <div className="p-4 border-t border-slate-100 safe-bottom space-y-2">
               {mode === 'manual' ? (
                 <button
                   type="submit"
@@ -3038,11 +4079,36 @@
                 >
                   Zapisz przepis
                 </button>
+              ) : mode === 'image' ? (
+                <div className="space-y-2">
+                  {geminiApiKey && (
+                    <button
+                      type="button"
+                      disabled={loading || !imageBase64}
+                      onClick={() => runAI()}
+                      className="w-full py-3 bg-indigo-600 disabled:opacity-45 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      {loading ? 'AI odczytuje przepis...' : '✨ Odczytaj składniki i kroki przez AI'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={!storageScreenshotUrl || loading}
+                    onClick={handleSaveScreenshotDirectly}
+                    className={`w-full py-3 disabled:opacity-45 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 ${
+                      geminiApiKey
+                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-slate-900 text-white shadow-sm'
+                    }`}
+                  >
+                    📸 Zapisz sam zrzut jako przepis (bez AI)
+                  </button>
+                </div>
               ) : (
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={runAI}
+                  onClick={() => runAI()}
                   className="w-full py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
                 >
                   {loading ? 'Analizuję przepis...' : '✨ Wyciągnij przepis przez AI'}
@@ -3055,13 +4121,19 @@
     }
 
     // ============================================================================
-    // MODAL: WYBÓR PRZEPISU DLA DNIA W PLANERZE
+    // MODAL: WYBÓR POSIŁKU DLA KONKRETNEGO DNIA I PORY (ŚNIADANIE / OBIAD / KOLACJA)
     // ============================================================================
-    function MealPlannerPickerModal({ dayId, recipes, onSelect, onClose }) {
+    function MealPlannerPickerModal({ target, recipes, onSelect, onClose }) {
       const [query, setQuery] = useState('');
+      const [customTitle, setCustomTitle] = useState('');
       const [tagFilter, setTagFilter] = useState('all');
       const [servings, setServings] = useState(2);
-      const dayObj = WEEK_DAYS.find((d) => d.id === dayId);
+
+      const dayObj = WEEK_DAYS.find((d) => d.id === target.dayId);
+      const slotObj = MEAL_SLOTS.find((s) => s.id === target.slotId) || MEAL_SLOTS[1];
+
+      const preferredTag =
+        target.slotId === 'breakfast' ? 'sniadanie' : target.slotId === 'dinner' ? 'kolacja' : null;
 
       const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -3079,19 +4151,36 @@
             );
           })
           .sort((a, b) => {
+            const aPref = preferredTag && (a.tags || []).includes(preferredTag) ? 2 : 0;
+            const bPref = preferredTag && (b.tags || []).includes(preferredTag) ? 2 : 0;
             const aMatch = a.votes?.user1 === 'yes' && a.votes?.user2 === 'yes' ? 1 : 0;
             const bMatch = b.votes?.user1 === 'yes' && b.votes?.user2 === 'yes' ? 1 : 0;
-            return bMatch - aMatch;
+            return (bPref + bMatch) - (aPref + aMatch);
           });
-      }, [recipes, query, tagFilter]);
+      }, [recipes, query, tagFilter, preferredTag]);
+
+      const handleQuickCustom = (e) => {
+        e.preventDefault();
+        if (!customTitle.trim()) return;
+        onSelect(
+          {
+            isCustom: true,
+            title: customTitle.trim(),
+            emoji: slotObj.emoji
+          },
+          servings
+        );
+      };
 
       return (
         <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-white w-full max-w-lg max-h-[90vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2">
               <div>
-                <h3 className="font-bold text-base text-slate-900">Obiad na: {dayObj?.label || dayId}</h3>
-                <p className="text-[11px] text-slate-500">Wybierz danie z bazy albo wylosuj pomysł.</p>
+                <h3 className="font-bold text-base text-slate-900">
+                  {slotObj.emoji} {slotObj.label} — {dayObj?.label || target.dayId}
+                </h3>
+                <p className="text-[11px] text-slate-500">Wpisz na szybko albo wybierz z bazy przepisów.</p>
               </div>
               <button onClick={onClose} className="p-2 bg-slate-100 rounded-xl text-slate-500">
                 <Icon name="x" className="w-4 h-4" />
@@ -3099,8 +4188,31 @@
             </div>
 
             <div className="p-4 border-b border-slate-100 space-y-2.5">
+              {/* Szybki wpis własny bez przepisu (idealny na śniadania i kolacje) */}
+              <form onSubmit={handleQuickCustom} className="flex gap-2">
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder={
+                    target.slotId === 'breakfast'
+                      ? 'Wpisz szybko (np. Jajecznica, Kanapki)...'
+                      : target.slotId === 'dinner'
+                      ? 'Wpisz szybko (np. Tosty, Sałatka)...'
+                      : 'Wpisz własny posiłek bez przepisu...'
+                  }
+                  className="flex-1 bg-amber-50/60 border border-amber-200 rounded-2xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="px-3.5 py-2 bg-slate-900 text-white rounded-2xl text-xs font-bold shrink-0 active:scale-95"
+                >
+                  Wpisz
+                </button>
+              </form>
+
               <div className="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-2xl px-3 py-2">
-                <span className="text-xs font-bold text-slate-700">Ile porcji gotujemy?</span>
+                <span className="text-xs font-bold text-slate-700">Ile porcji z przepisu?</span>
                 <div className="flex items-center gap-1.5">
                   {[2, 4].map((preset) => (
                     <button
@@ -3126,7 +4238,7 @@
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Szukaj przepisu..."
+                    placeholder="Szukaj w bazie przepisów..."
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -3213,9 +4325,15 @@
     }
 
     // ============================================================================
-    // MODAL: WYBÓR DNIA TYGODNIA DLA WYBRANEGO PRZEPISU
+    // MODAL: WYBÓR DNIA TYGODNIA I PORY POSIŁKU DLA WYBRANEGO PRZEPISU
     // ============================================================================
     function ScheduleRecipeDayModal({ recipe, mealPlan, todayJsDay, onAssign, onClose }) {
+      const defaultSlot = (recipe.tags || []).includes('sniadanie')
+        ? 'breakfast'
+        : (recipe.tags || []).includes('kolacja')
+        ? 'dinner'
+        : 'lunch';
+      const [slotId, setSlotId] = useState(defaultSlot);
       const [servings, setServings] = useState(Number(recipe.servings) || 2);
 
       return (
@@ -3232,6 +4350,22 @@
               <button onClick={onClose} className="p-2 bg-slate-100 rounded-xl text-slate-500 shrink-0">
                 <Icon name="x" className="w-4 h-4" />
               </button>
+            </div>
+
+            {/* Wybór pory posiłku */}
+            <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-2xl">
+              {MEAL_SLOTS.map((slot) => (
+                <button
+                  key={slot.id}
+                  type="button"
+                  onClick={() => setSlotId(slot.id)}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                    slotId === slot.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600'
+                  }`}
+                >
+                  {slot.emoji} {slot.label}
+                </button>
+              ))}
             </div>
 
             <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-3">
@@ -3257,15 +4391,15 @@
               </div>
             </div>
 
-            <div className="space-y-1.5 max-h-72 overflow-y-auto">
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
               {WEEK_DAYS.map((day) => {
-                const existing = mealPlan[day.id];
+                const existing = getDayMeals(mealPlan, day.id)[slotId];
                 const isToday = day.jsDay === todayJsDay;
                 return (
                   <button
                     key={day.id}
                     type="button"
-                    onClick={() => onAssign(day.id, servings)}
+                    onClick={() => onAssign(day.id, slotId, servings)}
                     className="w-full p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-2 text-left active:scale-[0.99]"
                   >
                     <div className="min-w-0">
@@ -3277,7 +4411,7 @@
                           Zastąpi: {existing.emoji} {existing.title}
                         </p>
                       ) : (
-                        <p className="text-[11px] text-slate-400 mt-0.5">Wolny dzień</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Wolne miejsce</p>
                       )}
                     </div>
                     <Icon name="calendarPlus" className="w-4 h-4 text-indigo-600 shrink-0" />
@@ -3309,7 +4443,6 @@
     }) {
       const [u1, setU1] = useState(household.user1Name || 'Kuba');
       const [u2, setU2] = useState(household.user2Name || 'Ania');
-      const [reward, setReward] = useState(household.weeklyReward || '');
       const [code, setCode] = useState(houseCode);
       const [fbRaw, setFbRaw] = useState('');
       const [fbErr, setFbErr] = useState('');
@@ -3319,8 +4452,7 @@
         e.preventDefault();
         await onUpdateHousehold({
           user1Name: u1.trim() || 'Kuba',
-          user2Name: u2.trim() || 'Ania',
-          weeklyReward: reward.trim() || 'Kawa do łóżka ☕'
+          user2Name: u2.trim() || 'Ania'
         });
         if (code.trim() && code.trim() !== houseCode) {
           onChangeHouseCode(code.trim());
@@ -3382,10 +4514,17 @@
           } catch (_) {}
         }
         try {
-          await navigator.clipboard.writeText(inviteUrl);
+          const ta = document.createElement('textarea');
+          ta.value = inviteUrl;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
           onShowToast(`Skopiowano link dla: ${partnerName}! Wyślij na WhatsApp / iMessage 📲`);
         } catch (_) {
-          window.prompt('Skopiuj ten link i wyślij na drugi iPhone:', inviteUrl);
+          onShowToast('Nie udało się skopiować linku', 'error');
         }
       };
 
@@ -3516,16 +4655,6 @@
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="np. kuba-ania-7391"
-                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-500">Nagroda tygodnia w obowiązkach</label>
-                  <input
-                    type="text"
-                    value={reward}
-                    onChange={(e) => setReward(e.target.value)}
                     className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
                   />
                 </div>
