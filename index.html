@@ -4715,6 +4715,26 @@
       const [fbRaw, setFbRaw] = useState('');
       const [fbErr, setFbErr] = useState('');
       const [aiKey, setAiKey] = useState(geminiApiKey);
+      const [isUpdatingApp, setIsUpdatingApp] = useState(false);
+
+      const handleForceUpdateApp = async () => {
+        setIsUpdatingApp(true);
+        onShowToast('Pobieranie najnowszej wersji aplikacji... 🔄');
+        try {
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((name) => caches.delete(name)));
+          }
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((reg) => reg.unregister()));
+          }
+        } catch (_) {}
+
+        const baseUrl = window.location.origin + window.location.pathname;
+        const hash = window.location.hash || '';
+        window.location.replace(`${baseUrl}?v=${Date.now()}${hash}`);
+      };
 
       const handleSaveProfile = async (e) => {
         e.preventDefault();
@@ -4959,6 +4979,25 @@
                     Zapisz
                   </button>
                 </div>
+              </div>
+
+              {/* SEKCJA 4: AKTUALIZACJA APLIKACJI (iOS PWA CACHE) */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                  Aktualizacja aplikacji na iPhonie
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Jeśli wprowadziłeś zmiany na GitHubie, a ikona na pulpicie pokazuje jeszcze starszą wersję — wymuś pobranie nowej bez utraty danych.
+                </p>
+                <button
+                  type="button"
+                  disabled={isUpdatingApp}
+                  onClick={handleForceUpdateApp}
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
+                >
+                  <Icon name="rotate" className={`w-4 h-4 ${isUpdatingApp ? 'animate-spin' : ''}`} />
+                  {isUpdatingApp ? 'Odświeżanie z serwera...' : 'Pobierz najnowszą wersję aplikacji'}
+                </button>
               </div>
             </div>
           </div>
