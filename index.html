@@ -178,6 +178,14 @@
       'Sprzątanie łazienki'
     ]);
 
+    function normalizeTitle(str) {
+      return String(str || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    const NORMALIZED_LEGACY_CHORES = new Set(
+      Array.from(LEGACY_STARTER_CHORE_TITLES).map(normalizeTitle)
+    );
+
     const STARTER_RECIPES = [
       {
         id: 'starter-1',
@@ -1425,9 +1433,25 @@
       const [shoppingItems, setShoppingItems] = useState(() => loadLocal('shopping', []));
       const [fridgeItems, setFridgeItems] = useState(() => loadLocal('fridge', []));
       const [chores, setChores] = useState(() =>
-        loadLocal('chores', []).filter((c) => !LEGACY_STARTER_CHORE_TITLES.has(c.title))
+        loadLocal('chores', []).filter((c) => !NORMALIZED_LEGACY_CHORES.has(normalizeTitle(c.title)))
       );
       const [customRecipes, setCustomRecipes] = useState(() => loadLocal('recipes', []));
+
+      // Bezpieczna obsługa zmiany kodu domu (wczytanie świeżego stanu zamiast mieszania dwóch domów)
+      const prevHouseIdRef = useRef(cleanHouseId);
+      useEffect(() => {
+        if (prevHouseIdRef.current !== cleanHouseId) {
+          prevHouseIdRef.current = cleanHouseId;
+          setHousehold(loadLocal('household', defaultHousehold));
+          setShoppingItems(loadLocal('shopping', []));
+          setFridgeItems(loadLocal('fridge', []));
+          setChores(
+            loadLocal('chores', []).filter((c) => !NORMALIZED_LEGACY_CHORES.has(normalizeTitle(c.title)))
+          );
+          setCustomRecipes(loadLocal('recipes', []));
+          setSelectedRecipeId(null);
+        }
+      }, [cleanHouseId]);
 
       // Scalone przepisy (startowe + własne + głosy Tinder)
       const recipes = useMemo(() => {
@@ -1481,6 +1505,7 @@
       const [newFridgeLocation, setNewFridgeLocation] = useState('fridge'); // fridge | pantry
       const [choresFilter, setChoresFilter] = useState('due'); // due | all
       const [showAddChoreModal, setShowAddChoreModal] = useState(false);
+      const [editingChore, setEditingChore] = useState(null);
 
       // --- UI Przepisy i Planer ---
       const [recipeSearch, setRecipeSearch] = useState('');
@@ -1602,14 +1627,16 @@
           .onSnapshot(
             async (snap) => {
               const allItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-              const legacyDocs = allItems.filter((item) => LEGACY_STARTER_CHORE_TITLES.has(item.title));
+              const legacyDocs = allItems.filter((item) =>
+                NORMALIZED_LEGACY_CHORES.has(normalizeTitle(item.title))
+              );
               if (legacyDocs.length > 0) {
                 for (const docItem of legacyDocs) {
                   db.doc(`${colPath('chores')}/${docItem.id}`).delete().catch(() => {});
                 }
               }
               const items = allItems
-                .filter((item) => !LEGACY_STARTER_CHORE_TITLES.has(item.title))
+                .filter((item) => !NORMALIZED_LEGACY_CHORES.has(normalizeTitle(item.title)))
                 .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
               setChores(items);
             },
@@ -1877,7 +1904,7 @@
       };
 
       // ==========================================================================
-      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI + POPRAWIONE USUWANIE)
+      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI + POPRAWIONE USUWANIE I EDYCJA)
       // ==========================================================================
       const handleAddChore = async (choreData) => {
         const entry = {
@@ -1898,7 +1925,7 @@
 
       const completeChore = async (chore) => {
         const now = Date.now();
-        if (dbRef.current && authUser) {
+        if (dbRef.current && authUser && !String(chore.id).startsWith('ch-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: now,
             lastDoneBy: activeProfile
@@ -1912,7 +1939,7 @@
       };
 
       const undoChore = async (chore) => {
-        if (dbRef.current && authUser) {
+        if (dbRef.current && authUser && !String(chore.id).startsWith('ch-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: null,
             lastDoneBy: null
@@ -1929,7 +1956,7 @@
         const prevChores = chores;
         setChores((prev) => prev.filter((c) => c.id !== chore.id));
         try {
-          if (dbRef.current && authUser) {
+          if (dbRef.current && authUser && !String(chore.id).startsWith('ch-')) {
             await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).delete();
           }
           showToast('Usunięto obowiązek 🗑️');
@@ -1937,6 +1964,24 @@
           console.warn('Błąd usuwania obowiązku:', err);
           setChores(prevChores);
           showToast('Nie udało się usunąć obowiązku — sprawdź połączenie', 'error');
+        }
+      };
+
+      const editChore = async (choreId, patch) => {
+        const cleanPatch = {
+          title: (patch.title || '').trim(),
+          frequency: patch.frequency || 'co_tydzien'
+        };
+        if (!cleanPatch.title) return;
+        setChores((prev) => prev.map((c) => (c.id === choreId ? { ...c, ...cleanPatch } : c)));
+        try {
+          if (dbRef.current && authUser && !String(choreId).startsWith('ch-')) {
+            await dbRef.current.doc(`${colPath('chores')}/${choreId}`).update(cleanPatch);
+          }
+          showToast('Zaktualizowano obowiązek ✏️');
+        } catch (err) {
+          console.warn('Błąd edycji obowiązku:', err);
+          showToast('Nie udało się zapisać zmian', 'error');
         }
       };
 
@@ -1962,13 +2007,18 @@
           houseCode: cleanHouseId,
           createdAt: Date.now()
         };
-        if (dbRef.current && authUser) {
-          await dbRef.current.collection(colPath('recipes')).add(entry);
-        } else {
-          setCustomRecipes((prev) => [{ id: `rec-${Date.now()}`, ...entry }, ...prev]);
+        try {
+          if (dbRef.current && authUser) {
+            await dbRef.current.collection(colPath('recipes')).add(entry);
+          } else {
+            setCustomRecipes((prev) => [{ id: `rec-${Date.now()}`, ...entry }, ...prev]);
+          }
+          setImportModalMode(null);
+          showToast(`Dodano przepis: ${recipeData.title} 🍽️`);
+        } catch (err) {
+          console.warn('Błąd zapisu przepisu:', err);
+          showToast('Zdjęcie jest zbyt duże dla chmury — spróbuj mniejszy zrzut ekranu.', 'error');
         }
-        setImportModalMode(null);
-        showToast(`Dodano przepis: ${recipeData.title} 🍽️`);
       };
 
       const deleteRecipe = async (recipe) => {
@@ -2661,6 +2711,7 @@
                     )}
                   </>
                 ) : (
+                  /* PODZAKŁADKA: ZAPASY (LODÓWKA + SZAFKA) */
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/70">
                       <button
@@ -2749,48 +2800,52 @@
                           {storageFilter === 'fridge' ? 'Lodówka jest pusta' : 'Szafka jest pusta'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Kupione produkty spożywcze wpadają tu automatycznie, a przepisy odliczają je z listy zakupów!
+                          Kupione produkty spożywcze automatycznie wpadają tutaj po odhaczeniu zakupów.
                         </p>
                       </div>
                     ) : (
                       <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 divide-y divide-slate-100">
-                        {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).map((item) => (
-                          <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-slate-800 truncate">{item.name}</p>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  moveFridgeItemLocation(item, storageFilter === 'fridge' ? 'pantry' : 'fridge')
-                                }
-                                className="text-[11px] font-bold text-slate-400 hover:text-indigo-600 mt-0.5"
-                              >
-                                {storageFilter === 'fridge' ? 'Przenieś do Szafki →' : 'Przenieś do Lodówki →'}
-                              </button>
+                        {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).map((item) => {
+                          const step = item.unit === 'g' || item.unit === 'ml' ? 50 : 1;
+                          return (
+                            <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-slate-800 truncate">{item.name}</p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    moveFridgeItemLocation(item, storageFilter === 'fridge' ? 'pantry' : 'fridge')
+                                  }
+                                  className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 mt-0.5"
+                                >
+                                  {storageFilter === 'fridge' ? 'Przenieś do Szafki 🗄️' : 'Przenieś do Lodówki ❄️'}
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => updateFridgeAmount(item, -step)}
+                                  className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
+                                  aria-label="Zmniejsz ilość"
+                                >
+                                  <Icon name="minus" className="w-3.5 h-3.5" />
+                                </button>
+                                <span className="text-xs font-extrabold text-slate-800 min-w-[3.6rem] text-center">
+                                  {formatAmount(item.amount)} {item.unit}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateFridgeAmount(item, step)}
+                                  className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
+                                  aria-label="Zwiększ ilość"
+                                >
+                                  <Icon name="plus" className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => updateFridgeAmount(item, -1)}
-                                className="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"
-                                aria-label="Zmniejsz ilość"
-                              >
-                                <Icon name="minus" className="w-3.5 h-3.5" />
-                              </button>
-                              <span className="text-xs font-extrabold text-slate-800 min-w-[3.5rem] text-center">
-                                {formatAmount(item.amount)} {item.unit}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => updateFridgeAmount(item, 1)}
-                                className="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"
-                                aria-label="Zwiększ ilość"
-                              >
-                                <Icon name="plus" className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -2809,7 +2864,7 @@
                       type="button"
                       onClick={() => setChoresFilter('due')}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        choresFilter === 'due' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
+                        choresFilter === 'due' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
                       }`}
                     >
                       Do zrobienia ({chores.filter(isChoreDue).length})
@@ -2818,7 +2873,7 @@
                       type="button"
                       onClick={() => setChoresFilter('all')}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        choresFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600'
+                        choresFilter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
                       }`}
                     >
                       Wszystkie ({chores.length})
@@ -2839,16 +2894,16 @@
                   <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
                     <p className="text-4xl mb-2">✨</p>
                     <p className="text-sm font-bold text-slate-800">
-                      {chores.length === 0 ? 'Brak dodanych obowiązków' : 'Wszystko zrobione na dziś!'}
+                      {chores.length === 0 ? 'Brak obowiązków na liście' : 'Wszystko na dziś zrobione!'}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
                       {chores.length === 0
-                        ? 'Kliknij „+ Dodaj”, aby utworzyć własne obowiązki domowe.'
-                        : 'Przełącz na „Wszystkie”, aby zobaczyć zadania wykonane niedawno.'}
+                        ? 'Kliknij „Dodaj” u góry, aby wpisać swoje zadania domowe.'
+                        : 'Przełącz na „Wszystkie”, żeby podejrzeć ukończone zadania.'}
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {visibleChores.map((chore) => {
                       const due = isChoreDue(chore);
                       const doneByName =
@@ -2861,17 +2916,17 @@
                       return (
                         <div
                           key={chore.id}
-                          className={`bg-white rounded-3xl p-4 shadow-sm border transition-all flex items-center justify-between gap-3 ${
+                          className={`bg-white rounded-3xl p-3.5 shadow-sm border flex items-center justify-between gap-2.5 transition-all ${
                             due ? 'border-slate-200/80' : 'border-emerald-200/80 bg-emerald-50/30 opacity-80'
                           }`}
                         >
                           <button
                             type="button"
                             onClick={() => (due ? completeChore(chore) : undoChore(chore))}
-                            className="flex items-start gap-3 flex-1 min-w-0 text-left"
+                            className="flex items-center gap-3 flex-1 min-w-0 text-left"
                           >
                             <span
-                              className={`mt-0.5 w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                              className={`w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                 due
                                   ? 'border-2 border-slate-300 bg-white'
                                   : 'bg-emerald-500 text-white'
@@ -2881,7 +2936,7 @@
                             </span>
                             <div className="min-w-0">
                               <p
-                                className={`text-sm font-bold leading-snug ${
+                                className={`text-sm font-bold leading-snug truncate ${
                                   due ? 'text-slate-900' : 'line-through text-slate-500'
                                 }`}
                               >
@@ -2889,7 +2944,7 @@
                               </p>
                               <p className="text-[11px] text-slate-500 mt-0.5">
                                 {FREQUENCY_LABELS[chore.frequency] || 'Cykliczne'}
-                                {!due && doneByName ? ` • Zrobił(a): ${doneByName}` : ''}
+                                {!due && doneByName ? ` • Zrobione (${doneByName})` : ''}
                               </p>
                             </div>
                           </button>
@@ -2905,6 +2960,14 @@
                                 <Icon name="bell" className="w-4 h-4" />
                               </button>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => setEditingChore(chore)}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold"
+                              aria-label="Edytuj obowiązek"
+                            >
+                              Edytuj
+                            </button>
                             <button
                               type="button"
                               onClick={() => deleteChore(chore)}
@@ -2923,10 +2986,10 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 3: PRZEPISY I PLANER TYGODNIA
+                ZAKŁADKA 3: PRZEPISY + PLANER TYGODNIA
                ================================================================== */}
             {activeTab === 'recipes' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-3xl shadow-sm border border-slate-200/70">
                   <button
                     onClick={() => setRecipesSubTab('list')}
@@ -2944,18 +3007,19 @@
                     }`}
                   >
                     <Icon name="calendar" className="w-4 h-4" />
-                    Plan tygodnia ({plannedMealsCount})
+                    Planer ({plannedMealsCount})
                   </button>
                 </div>
 
                 {recipesSubTab === 'planner' ? (
                   <div className="space-y-3">
-                    <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/70 space-y-2.5">
+                    {/* Pasek akcji Planera tygodnia */}
+                    <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <h2 className="text-sm font-extrabold text-slate-900">Planer posiłków (Pon–Nd)</h2>
+                          <h2 className="text-sm font-extrabold text-slate-900">Plan posiłków na tydzień</h2>
                           <p className="text-[11px] text-slate-500">
-                            Śniadania, obiady i kolacje • Zaplanowano: {formatMealCount(plannedMealsCount)}
+                            Zaplanowano {formatMealCount(plannedMealsCount)} (do zrobienia: {uncookedPlannedMealsCount})
                           </p>
                         </div>
                         {plannedMealsCount > 0 && (
@@ -2963,13 +3027,13 @@
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={clearMealPlan}
-                                className="px-2.5 py-1.5 bg-rose-600 text-white rounded-xl text-[11px] font-bold"
+                                className="px-2.5 py-1 bg-rose-600 text-white rounded-xl text-[11px] font-bold"
                               >
                                 Potwierdź
                               </button>
                               <button
                                 onClick={() => setConfirmClearPlan(false)}
-                                className="px-2 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-bold"
+                                className="px-2 py-1 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-bold"
                               >
                                 Anuluj
                               </button>
@@ -2979,7 +3043,7 @@
                               onClick={() => setConfirmClearPlan(true)}
                               className="px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl text-[11px] font-bold"
                             >
-                              Wyczyść tydzień
+                              Wyczyść
                             </button>
                           )
                         )}
@@ -2991,19 +3055,19 @@
                           className="py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
                         >
                           <Icon name="shuffle" className="w-4 h-4" />
-                          Wylosuj puste obiady
+                          Losuj obiady
                         </button>
                         <button
                           onClick={openWeeklyPlanShoppingModal}
-                          disabled={uncookedPlannedMealsCount === 0}
-                          className="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-45 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                          className="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                         >
                           <Icon name="cart" className="w-4 h-4" />
-                          Zakupy z planu ({uncookedPlannedMealsCount})
+                          Zakupy z planu
                         </button>
                       </div>
                     </div>
 
+                    {/* 7 DNI TYGODNIA — KAŻDY DZIEŃ MA ŚNIADANIE, OBIAD I KOLACJĘ */}
                     <div className="space-y-3">
                       {WEEK_DAYS.map((day) => {
                         const dayMeals = getDayMeals(mealPlan, day.id);
@@ -3309,7 +3373,7 @@
             )}
           </main>
 
-          {/* DOLNA NAWIGACJA */}
+          {/* DOLNA NAWIGACJA (Z BEZPIECZNYM MARGINESEM POD PASEK GESTÓW iPhone) */}
           <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 safe-bottom">
             <div className="max-w-xl mx-auto px-4 pt-2 flex items-center justify-around">
               {[
@@ -3626,10 +3690,22 @@
             </div>
           )}
 
+          {/* MODALE POMOCNICZE */}
           {showAddChoreModal && (
             <AddChoreModal
               onClose={() => setShowAddChoreModal(false)}
               onAdd={handleAddChore}
+            />
+          )}
+
+          {editingChore && (
+            <EditChoreModal
+              chore={editingChore}
+              onClose={() => setEditingChore(null)}
+              onSave={async (patch) => {
+                await editChore(editingChore.id, patch);
+                setEditingChore(null);
+              }}
             />
           )}
 
@@ -3701,7 +3777,7 @@
     }
 
     // ============================================================================
-    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU
+    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU (BEZ PUNKTACJI)
     // ============================================================================
     function AddChoreModal({ onAdd, onClose }) {
       const [title, setTitle] = useState('');
@@ -3758,6 +3834,69 @@
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold shadow-sm"
               >
                 Dodaj obowiązek
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MODAL: EDYCJA ISTNIEJĄCEGO OBOWIĄZKU
+    // ============================================================================
+    function EditChoreModal({ chore, onSave, onClose }) {
+      const [title, setTitle] = useState(chore.title || '');
+      const [frequency, setFrequency] = useState(chore.frequency || 'co_tydzien');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!title.trim()) return;
+        onSave({
+          title: title.trim(),
+          frequency
+        });
+      };
+
+      return (
+        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl safe-bottom">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-base text-slate-900">Edytuj obowiązek</h3>
+              <button onClick={onClose} className="p-2 bg-slate-100 rounded-xl text-slate-500">
+                <Icon name="x" className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-600">Nazwa obowiązku</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-600">Jak często?</label>
+                <select
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5"
+                >
+                  {Object.entries(FREQUENCY_LABELS).map(([k, label]) => (
+                    <option key={k} value={k}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold shadow-sm"
+              >
+                Zapisz zmiany
               </button>
             </form>
           </div>
@@ -3915,7 +4054,7 @@
     // MODAL: DODAWANIE PRZEPISU (ZRZUT EKRANU 1-KLIK + WŁASNY + IMPORT AI)
     // ============================================================================
     function RecipeImportModal({ initialMode = 'manual', geminiApiKey, fridgeItems, onSave, onSaveGeminiKey, onOpenSettings, onClose }) {
-      const [mode, setMode] = useState(initialMode); // image | manual | text | ai
+      const [mode, setMode] = useState(initialMode);
       const [loading, setLoading] = useState(false);
       const [errorMsg, setErrorMsg] = useState('');
 
@@ -4306,7 +4445,7 @@
                       {!geminiApiKey && (
                         <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-2">
                           <p className="text-[11px] text-indigo-900">
-                            Chcesz, żeby AI automatycznie przepisało składniki na listę zakupów? Wklej darmowy klucz z <strong>aistudio.google.com</strong> (opcjonalnie):
+                            Chcesz, żeby AI automatycznie przepisało składniki ze zdjęcia na listę zakupów? Wklej darmowy klucz z <strong>aistudio.google.com</strong> (albo po prostu kliknij „Zapisz sam zrzut” poniżej):
                           </p>
                           <div className="flex gap-1.5">
                             <input
@@ -4314,7 +4453,7 @@
                               value={inlineKeyInput}
                               onChange={(e) => setInlineKeyInput(e.target.value)}
                               placeholder="AIzaSy..."
-                              className="flex-1 bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5 text-xs"
+                              className="flex-1 bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5"
                             />
                             <button
                               type="button"
@@ -4710,7 +4849,7 @@
     }
 
     // ============================================================================
-    // MODAL: USTAWIENIA + KREATOR SYNCHRONIZACJI 2 iPHONE'ÓW
+    // MODAL: USTAWIENIA + KREATOR SYNCHRONIZACJI 2 iPHONE'ÓW (BEZ KOMPUTERA!)
     // ============================================================================
     function SettingsModal({
       household,
@@ -4844,6 +4983,7 @@
             </div>
 
             <div className="p-4 overflow-y-auto space-y-5 flex-1 safe-bottom">
+              {/* SEKCJA 1: SYNCHRONIZACJA 2 IPHONE'ÓW */}
               <div className="bg-indigo-50/70 border border-indigo-200 rounded-3xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-extrabold text-indigo-950 flex items-center gap-1.5">
@@ -4883,7 +5023,7 @@
                 ) : (
                   <div className="space-y-2.5">
                     <p className="text-xs text-indigo-900 leading-relaxed">
-                      Wklej tutaj kod <code>firebaseConfig</code> skopiowany ze strony Firebase:
+                      Wklej tutaj kod <code>firebaseConfig</code> skopiowany ze strony Firebase (nie musisz nic formatować ani edytować w kodzie strony):
                     </p>
                     <textarea
                       rows="4"
@@ -4904,6 +5044,7 @@
                 )}
               </div>
 
+              {/* SEKCJA 2: WASZ DOM I PROFIL */}
               <form onSubmit={handleSaveProfile} className="space-y-3">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Wasz dom i profile
@@ -4970,6 +5111,7 @@
                 </button>
               </form>
 
+              {/* SEKCJA 3: OPCJONALNE AI */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Import przepisów AI (opcjonalnie, 0 zł)
@@ -4995,6 +5137,7 @@
                 </div>
               </div>
 
+              {/* SEKCJA 4: AKTUALIZACJA APLIKACJI (iOS PWA CACHE) */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Aktualizacja aplikacji na iPhonie
