@@ -1175,15 +1175,43 @@
     // FUNKCJE POMOCNICZE
     // ============================================================================
     function guessShoppingCategory(name) {
-      const n = (name || '').toLowerCase();
-      if (/(pomidor|ogórek|cebula|czosnek|szpinak|sałat|marchew|ziemniak|cukini|papryk|jabłk|banan|cytryn|koperek|bazyl|brokuł|pieczark|awokado|owoc|warzyw)/.test(n)) return 'warzywa';
-      if (/(mleko|ser|parmezan|mozzarell|jogurt|śmietan|masło|jajk|twaróg|kefir)/.test(n)) return 'nabial';
-      if (/(kurczak|indyk|mięso|schab|wołow|wieprz|szynk|boczek|kiełbas|łosoś|tuńczyk|ryba|krewet)/.test(n)) return 'mieso';
-      if (/(chleb|bułk|tortill|bagiet|pieczyw|tost)/.test(n)) return 'pieczywo';
-      if (/(makaron|ryż|kasza|mąka|płatki|ciecierzyc|fasol|gnocchi|soczewic)/.test(n)) return 'sypkie';
-      if (/(sól|pieprz|oliw|olej|sos|passat|ketchup|musztard|majonez|przypraw|curry|oregano|cukier|mleczko kokos|suszone)/.test(n)) return 'przyprawy';
-      if (/(papier|mydło|płyn|kapsułk|proszek|worki|ręcznik|pasta do zębów|szampon)/.test(n)) return 'chemia';
+      const n = (name || '').toLowerCase().trim();
+      // 1. Najpierw chemia i dom (żeby np. "płyn do mycia owoców" czy "worki na warzywa" nie wpadły do jedzenia)
+      if (/(papier|mydło|mydlo|płyn|plyn|kapsułk|kapsulk|proszek|worki|ręcznik|recznik|pasta do zębów|szampon|gąbk|gabk|ścierecz|scierecz|tabletki do zmyw|odświeżacz|wybielacz|domestos|cif|ludwik|do szyb)/.test(n)) return 'chemia';
+
+      // 2. Przyprawy, zioła suszone, oliwy i sosy (przed warzywami, żeby "czosnek granulowany", "papryka słodka", "pomidory w puszce" nie wpadały do warzyw!)
+      if (/(sól|sol|pieprz|oliw|olej|sos|passat|ketchup|musztard|majonez|przypraw|curry|oregano|cukier|mleczko kokos|suszon|granulowan|mielon[aey]|wędzon[aey]|słodk[aey]\s+papryk|ostr[aey]\s+papryk|papryka\s+(słodka|slodka|ostra|wędzona|wedzona)|cynamon|kurkum|imbir\s+mielon|kumin|kminek|majeranek|tymianek|rozmaryn|bazylia\s+suszon|liść laurowy|lisc laurowy|ziele angielskie|proszek do pieczenia|soda oczyszczona|wanili|ocet|pesto|bulion|kostk[ai]\s+rosołow|zakwas|chrzan|koncentrat|w puszce|w słoiku)/.test(n)) return 'przyprawy';
+
+      // 3. Sypkie, makarony, kasze, mąki, puszki suche
+      if (/(makaron|ryż|ryz|kasza|mąka|maka|płatki|platki|ciecierzyc|fasol|gnocchi|soczewic|bułka tarta|bulka tarta|sezam|pestki|orzech|migdał|rodzynk|drożdż|drozdz|kukurydza konserw|groszek konserw)/.test(n)) return 'sypkie';
+
+      // 4. Nabiał i jaja
+      if (/(mleko|ser\b|serek|parmezan|mozzarell|feta|cheddar|jogurt|śmietan|smietan|masło|maslo|jajk|twaróg|twarog|kefir|maślank|maslank)/.test(n)) return 'nabial';
+
+      // 5. Mięso i ryby
+      if (/(kurczak|indyk|mięso|mieso|schab|wołow|wolow|wieprz|szynk|boczek|kiełbas|kielbas|łosoś|losos|tuńczyk|tunczyk|ryba|krewet|filet|pierś|piers|karkówk|karkowk|polędwic|poledwic)/.test(n)) return 'mieso';
+
+      // 6. Pieczywo
+      if (/(chleb|bułk|bulk|tortill|bagiet|pieczyw|tost|chałk|chalk|kajzerk|rogale)/.test(n)) return 'pieczywo';
+
+      // 7. Warzywa i owoce (świeże)
+      if (/(pomidor|ogórek|ogorek|cebula|czosnek|szpinak|sałat|salat|marchew|ziemniak|cukini|papryk|jabłk|jablk|banan|cytryn|koperek|bazyl|brokuł|brokul|pieczark|awokado|owoc|warzyw|rzodkiew|szczypior|natka|pietruszk|seler|por\b|dynia|borówk|borowk|malin|truskawk|gruszk|pomarańcz|pomarancz|ziemniaki|włoszczyzn|wloszczyzn)/.test(n)) return 'warzywa';
+
       return 'inne';
+    }
+
+    // Określa czy produkt spożywczy trafia do Lodówki ('fridge') czy do Szafki ('pantry')
+    function guessStorageLocation(name, category) {
+      const cat = category || guessShoppingCategory(name);
+      if (cat === 'chemia') return 'none';
+      if (cat === 'nabial' || cat === 'mieso') return 'fridge';
+      if (cat === 'sypkie' || cat === 'przyprawy' || cat === 'pieczywo') return 'pantry';
+      const n = (name || '').toLowerCase();
+      if (/(puszk|słoik|sloik|konserw|such|makaron|ryż|kasza|mąka|olej|oliw|cukier|kawa|herbata|płatki|przypraw|miód|miod|dżem|dzem|masło orzech|syrop|ketchup|musztard|sos soj|passat|mleczko kokos)/.test(n)) {
+        return 'pantry';
+      }
+      if (cat === 'warzywa') return 'fridge';
+      return 'pantry';
     }
 
     function parseSafeNumber(val, fallback = 1) {
@@ -1464,11 +1492,11 @@
       const [newItemName, setNewItemName] = useState('');
       const [newItemAmount, setNewItemAmount] = useState('1');
       const [newItemUnit, setNewItemUnit] = useState('szt.');
+      const [storageFilter, setStorageFilter] = useState('fridge'); // fridge | pantry
       const [newFridgeName, setNewFridgeName] = useState('');
       const [newFridgeAmount, setNewFridgeAmount] = useState('1');
       const [newFridgeUnit, setNewFridgeUnit] = useState('szt.');
-
-      // --- UI Obowiązki ---
+      const [newFridgeLocation, setNewFridgeLocation] = useState('fridge'); // fridge | pantry
       const [choresFilter, setChoresFilter] = useState('due'); // due | all
       const [showAddChoreModal, setShowAddChoreModal] = useState(false);
 
@@ -1718,6 +1746,41 @@
 
       const toggleShoppingItem = async (item) => {
         const nextChecked = !item.checked;
+        // Sprawdzamy, czy po odhaczeniu tego produktu CAŁA lista zakupów jest już w koszyku
+        const remainingUnchecked = shoppingItems.filter((i) => i.id !== item.id && !i.checked);
+
+        if (nextChecked && remainingUnchecked.length === 0 && shoppingItems.length > 0) {
+          // Automatycznie przenosimy całe zakupy do Lodówki / Szafki bez dodatkowego klikania!
+          try {
+            let movedFoodCount = 0;
+            for (const sItem of shoppingItems) {
+              const cat = sItem.category || guessShoppingCategory(sItem.name);
+              const loc = guessStorageLocation(sItem.name, cat);
+              if (loc !== 'none') {
+                await addOrMergeFridgeItem({ ...sItem, category: cat, location: loc });
+                movedFoodCount++;
+              }
+              if (dbRef.current && authUser) {
+                await dbRef.current.doc(`${colPath('shopping')}/${sItem.id}`).delete();
+              }
+            }
+            if (!dbRef.current || !authUser) {
+              setShoppingItems([]);
+            }
+            if (household.inStoreBy === activeProfile) {
+              await updateHouseholdField({ inStoreBy: null, inStoreAt: null });
+            }
+            showToast(
+              movedFoodCount > 0
+                ? `Wszystko kupione! Przeniesiono ${movedFoodCount} prod. do Lodówki i Szafki 🎉`
+                : 'Wszystko kupione! Lista zakupów wyczyszczona 🎉'
+            );
+          } catch (err) {
+            console.warn('Błąd automatycznego przenoszenia zakupów:', err);
+          }
+          return;
+        }
+
         if (dbRef.current && authUser) {
           await dbRef.current.doc(`${colPath('shopping')}/${item.id}`).update({ checked: nextChecked });
         } else {
@@ -1733,16 +1796,20 @@
         }
       };
 
-      const addOrMergeFridgeItem = async ({ name, amount, unit, category }) => {
+      const addOrMergeFridgeItem = async ({ name, amount, unit, category, location }) => {
         const cleanName = (name || '').trim();
         if (!cleanName) return;
         const cleanUnit = (unit || 'szt.').trim();
         const addAmt = parseSafeNumber(amount, 1) || 1;
+        const resolvedCategory = category || guessShoppingCategory(cleanName);
+        const resolvedLocation = location || guessStorageLocation(cleanName, resolvedCategory);
+        if (resolvedLocation === 'none') return;
 
         const existing = fridgeItems.find(
           (f) =>
             (f.name || '').trim().toLowerCase() === cleanName.toLowerCase() &&
-            (f.unit || '').trim().toLowerCase() === cleanUnit.toLowerCase()
+            (f.unit || '').trim().toLowerCase() === cleanUnit.toLowerCase() &&
+            (f.location || guessStorageLocation(f.name, f.category)) === resolvedLocation
         );
 
         if (existing) {
@@ -1750,10 +1817,12 @@
           if (dbRef.current && authUser) {
             await dbRef.current
               .doc(`${colPath('fridge')}/${existing.id}`)
-              .update({ amount: nextAmount, updatedAt: Date.now() });
+              .update({ amount: nextAmount, location: resolvedLocation, updatedAt: Date.now() });
           } else {
             setFridgeItems((prev) =>
-              prev.map((f) => (f.id === existing.id ? { ...f, amount: nextAmount, updatedAt: Date.now() } : f))
+              prev.map((f) =>
+                f.id === existing.id ? { ...f, amount: nextAmount, location: resolvedLocation, updatedAt: Date.now() } : f
+              )
             );
           }
           return;
@@ -1763,7 +1832,8 @@
           name: cleanName,
           amount: addAmt,
           unit: cleanUnit,
-          category: category || guessShoppingCategory(cleanName),
+          category: resolvedCategory,
+          location: resolvedLocation,
           houseCode: cleanHouseId,
           updatedAt: Date.now()
         };
@@ -1775,13 +1845,30 @@
         }
       };
 
+      const moveFridgeItemLocation = async (item, targetLocation) => {
+        if (dbRef.current && authUser) {
+          await dbRef.current
+            .doc(`${colPath('fridge')}/${item.id}`)
+            .update({ location: targetLocation, updatedAt: Date.now() });
+        } else {
+          setFridgeItems((prev) =>
+            prev.map((f) => (f.id === item.id ? { ...f, location: targetLocation, updatedAt: Date.now() } : f))
+          );
+        }
+        showToast(targetLocation === 'fridge' ? 'Przeniesiono do Lodówki ❄️' : 'Przeniesiono do Szafki 🗄️');
+      };
+
       const clearCheckedToFridge = async () => {
         const checked = shoppingItems.filter((i) => i.checked);
         if (checked.length === 0) return;
         try {
+          let movedFoodCount = 0;
           for (const item of checked) {
-            if (item.category !== 'chemia') {
-              await addOrMergeFridgeItem(item);
+            const cat = item.category || guessShoppingCategory(item.name);
+            const loc = guessStorageLocation(item.name, cat);
+            if (loc !== 'none') {
+              await addOrMergeFridgeItem({ ...item, category: cat, location: loc });
+              movedFoodCount++;
             }
             if (dbRef.current && authUser) {
               await dbRef.current.doc(`${colPath('shopping')}/${item.id}`).delete();
@@ -1793,7 +1880,7 @@
           if (household.inStoreBy === activeProfile) {
             await updateHouseholdField({ inStoreBy: null, inStoreAt: null });
           }
-          showToast(`Wyczyszczono koszyk — ${checked.length} prod. przeniesiono do Lodówki ❄️`);
+          showToast(`Przeniesiono ${movedFoodCount} prod. do Lodówki i Szafki (chemia pominięta) ✅`);
         } catch (err) {
           console.warn('Błąd czyszczenia koszyka:', err);
           showToast('Nie udało się wyczyścić koszyka', 'error');
@@ -1822,11 +1909,16 @@
       const handleQuickAddFridge = async (e) => {
         e.preventDefault();
         if (!newFridgeName.trim()) return;
-        await addOrMergeFridgeItem({ name: newFridgeName, amount: newFridgeAmount, unit: newFridgeUnit });
+        await addOrMergeFridgeItem({
+          name: newFridgeName,
+          amount: newFridgeAmount,
+          unit: newFridgeUnit,
+          location: newFridgeLocation
+        });
         setNewFridgeName('');
         setNewFridgeAmount('1');
         setNewFridgeUnit('szt.');
-        showToast('Dodano do Lodówki ❄️');
+        showToast(newFridgeLocation === 'fridge' ? 'Dodano do Lodówki ❄️' : 'Dodano do Szafki 🗄️');
       };
 
       const toggleInStore = async () => {
@@ -2291,10 +2383,20 @@
       const uncheckedShopping = shoppingItems.filter((i) => !i.checked);
       const checkedShopping = shoppingItems.filter((i) => i.checked);
 
+      const fridgeOnlyItems = useMemo(
+        () => fridgeItems.filter((f) => (f.location || guessStorageLocation(f.name, f.category)) === 'fridge'),
+        [fridgeItems]
+      );
+      const pantryOnlyItems = useMemo(
+        () => fridgeItems.filter((f) => (f.location || guessStorageLocation(f.name, f.category)) === 'pantry'),
+        [fridgeItems]
+      );
+
       const groupedShopping = useMemo(() => {
         const groups = {};
         for (const item of uncheckedShopping) {
-          const cat = item.category || 'inne';
+          // Zawsze przeliczamy kategorię z aktualnego słownika, aby stare błędne przypisania też się naprawiły
+          const cat = guessShoppingCategory(item.name);
           if (!groups[cat]) groups[cat] = [];
           groups[cat].push(item);
         }
@@ -2456,11 +2558,11 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 1: ZAKUPY + LODÓWKA
+                ZAKŁADKA 1: ZAKUPY + LODÓWKA I SZAFKA
                ================================================================== */}
             {activeTab === 'shopping' && (
               <div className="space-y-4">
-                {/* Przełącznik Zakupy / Lodówka */}
+                {/* Przełącznik Zakupy / Zapasy (Lodówka + Szafka) */}
                 <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-3xl shadow-sm border border-slate-200/70">
                   <button
                     onClick={() => setShoppingSubTab('list')}
@@ -2478,7 +2580,7 @@
                     }`}
                   >
                     <Icon name="snowflake" className="w-4 h-4" />
-                    Lodówka ({fridgeItems.length})
+                    Zapasy ({fridgeItems.length})
                   </button>
                 </div>
 
@@ -2538,19 +2640,18 @@
                               : 'bg-slate-50 border-slate-200 text-slate-700'
                           }`}
                         >
-                          <Icon name="store" className="w-4 h-4 shrink-0" />
-                          <span>{household.inStoreBy === activeProfile ? 'W sklepie ✓' : 'Jestem w sklepie'}</span>
+                          <Icon name="store" className="w-3.5 h-3.5" />
+                          {household.inStoreBy === activeProfile ? 'Jestem w sklepie ✅' : 'Jestem w sklepie'}
                         </button>
                       </div>
                     </form>
 
-                    {/* Lista zakupów pogrupowana kategoriami */}
-                    {shoppingItems.length === 0 ? (
+                    {uncheckedShopping.length === 0 && checkedShopping.length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
                         <p className="text-4xl mb-2">🛒</p>
                         <p className="text-sm font-bold text-slate-800">Lista zakupów jest pusta</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Dopisz produkty wyżej albo wrzuć składniki z Planera tygodnia!
+                          Dodaj produkty wyżej albo wrzuć składniki z Planera tygodnia!
                         </p>
                       </div>
                     ) : (
@@ -2560,29 +2661,35 @@
                             key={group.id}
                             className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2"
                           >
-                            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 px-1 flex items-center gap-1.5">
-                              <span>{group.emoji}</span>
-                              <span>{group.label}</span>
-                            </h3>
+                            <div className="flex items-center justify-between px-1">
+                              <span className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
+                                <span>{group.emoji}</span>
+                                <span>{group.label}</span>
+                              </span>
+                              <span className="text-[11px] font-bold text-slate-400">
+                                {group.items.length}
+                              </span>
+                            </div>
+
                             <div className="divide-y divide-slate-100">
                               {group.items.map((item) => (
                                 <div key={item.id} className="py-2 flex items-center justify-between gap-2">
                                   <button
                                     onClick={() => toggleShoppingItem(item)}
-                                    className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
                                   >
-                                    <span className="w-6 h-6 rounded-xl border-2 border-slate-300 flex items-center justify-center shrink-0" />
+                                    <span className="w-5 h-5 rounded-lg border-2 border-slate-300 bg-white flex items-center justify-center shrink-0" />
                                     <span className="text-sm font-semibold text-slate-800 truncate">
                                       {item.name}
                                     </span>
                                   </button>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg">
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg">
                                       {formatAmount(item.amount)} {item.unit}
                                     </span>
                                     <button
                                       onClick={() => deleteShoppingItem(item)}
-                                      className="p-1.5 text-slate-300 hover:text-rose-500"
+                                      className="p-1 text-slate-300 hover:text-rose-500"
                                       aria-label="Usuń produkt"
                                     >
                                       <Icon name="trash" className="w-4 h-4" />
@@ -2594,7 +2701,7 @@
                           </div>
                         ))}
 
-                        {/* Sekcja kupionych produktów */}
+                        {/* Sekcja kupionych produktów (gdy część jeszcze została do kupienia) */}
                         {checkedShopping.length > 0 && (
                           <div className="bg-emerald-50/60 rounded-3xl p-3.5 border border-emerald-200/80 space-y-2.5">
                             <div className="flex items-center justify-between gap-2">
@@ -2606,9 +2713,12 @@
                                 className="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95"
                               >
                                 <Icon name="snowflake" className="w-3.5 h-3.5" />
-                                Przenieś do Lodówki
+                                Przenieś do Zapasów
                               </button>
                             </div>
+                            <p className="text-[11px] text-emerald-700">
+                              💡 Gdy odhaczysz ostatni produkt z listy, całe zakupy przeniosą się same (bez chemii)!
+                            </p>
                             <div className="space-y-1">
                               {checkedShopping.map((item) => (
                                 <div key={item.id} className="py-1.5 flex items-center justify-between gap-2">
@@ -2635,8 +2745,32 @@
                     )}
                   </>
                 ) : (
-                  /* PODZAKŁADKA: LODÓWKA */
+                  /* PODZAKŁADKA: ZAPASY (PODZIAŁ NA LODÓWKĘ I SZAFKĘ) */
                   <div className="space-y-3">
+                    {/* Przełącznik Lodówka vs Szafka */}
+                    <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/70">
+                      <button
+                        type="button"
+                        onClick={() => { setStorageFilter('fridge'); setNewFridgeLocation('fridge'); }}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                          storageFilter === 'fridge' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        <span>❄️</span>
+                        <span>Lodówka ({fridgeOnlyItems.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStorageFilter('pantry'); setNewFridgeLocation('pantry'); }}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                          storageFilter === 'pantry' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        <span>🗄️</span>
+                        <span>Szafka ({pantryOnlyItems.length})</span>
+                      </button>
+                    </div>
+
                     <form
                       onSubmit={handleQuickAddFridge}
                       className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5"
@@ -2646,13 +2780,19 @@
                           type="text"
                           value={newFridgeName}
                           onChange={(e) => setNewFridgeName(e.target.value)}
-                          placeholder="Co macie w lodówce / szafce?"
+                          placeholder={
+                            newFridgeLocation === 'fridge'
+                              ? 'Dodaj do lodówki (np. mleko, ser)...'
+                              : 'Dodaj do szafki (np. makaron, ryż)...'
+                          }
                           className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
                         <button
                           type="submit"
-                          className="w-11 h-11 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0"
-                          aria-label="Dodaj do lodówki"
+                          className={`w-11 h-11 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0 ${
+                            newFridgeLocation === 'fridge' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-amber-600 hover:bg-amber-700'
+                          }`}
+                          aria-label="Dodaj do zapasów"
                         >
                           <Icon name="plus" className="w-5 h-5" />
                         </button>
@@ -2663,13 +2803,13 @@
                           inputMode="decimal"
                           value={newFridgeAmount}
                           onChange={(e) => setNewFridgeAmount(e.target.value)}
-                          className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                          className="w-16 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
                           aria-label="Ilość"
                         />
                         <select
                           value={newFridgeUnit}
                           onChange={(e) => setNewFridgeUnit(e.target.value)}
-                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"
                           aria-label="Jednostka"
                         >
                           <option value="szt.">szt.</option>
@@ -2679,28 +2819,47 @@
                           <option value="l">l</option>
                           <option value="opak.">opak.</option>
                         </select>
-                        <p className="text-[11px] text-slate-400 flex-1 leading-tight">
-                          Składniki stąd są automatycznie odejmowane przy zakupach z Planera!
-                        </p>
+                        <select
+                          value={newFridgeLocation}
+                          onChange={(e) => setNewFridgeLocation(e.target.value)}
+                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold"
+                          aria-label="Miejsce przechowywania"
+                        >
+                          <option value="fridge">❄️ Lodówka</option>
+                          <option value="pantry">🗄️ Szafka</option>
+                        </select>
                       </div>
                     </form>
 
-                    {fridgeItems.length === 0 ? (
+                    {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
-                        <p className="text-4xl mb-2">❄️</p>
-                        <p className="text-sm font-bold text-slate-800">Lodówka jest pusta</p>
+                        <p className="text-4xl mb-2">{storageFilter === 'fridge' ? '❄️' : '🗄️'}</p>
+                        <p className="text-sm font-bold text-slate-800">
+                          {storageFilter === 'fridge' ? 'Lodówka jest pusta' : 'Szafka jest pusta'}
+                        </p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Kupione produkty z zakładki Zakupy mogą tu wpadać jednym kliknięciem.
+                          Po odhaczeniu całych zakupów produkty spożywcze wpadają tu automatycznie (chemia jest pomijana).
                         </p>
                       </div>
                     ) : (
                       <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 divide-y divide-slate-100">
-                        {fridgeItems.map((item) => (
+                        {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).map((item) => (
                           <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold text-slate-800 truncate flex-1">
-                              {item.name}
-                            </span>
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="min-w-0 flex-1">
+                              <span className="text-sm font-semibold text-slate-800 truncate block">
+                                {item.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() =>
+                                  moveFridgeItemLocation(item, storageFilter === 'fridge' ? 'pantry' : 'fridge')
+                                }
+                                className="px-2 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-600"
+                                title={storageFilter === 'fridge' ? 'Przenieś do Szafki' : 'Przenieś do Lodówki'}
+                              >
+                                {storageFilter === 'fridge' ? '→ 🗄️' : '→ ❄️'}
+                              </button>
                               <button
                                 onClick={() => updateFridgeAmount(item, -1)}
                                 className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"
@@ -2708,7 +2867,11 @@
                               >
                                 <Icon name="minus" className="w-3.5 h-3.5" />
                               </button>
-                              <span className="text-xs font-extrabold text-sky-700 min-w-[3.5rem] text-center">
+                              <span
+                                className={`text-xs font-extrabold min-w-[3.2rem] text-center ${
+                                  storageFilter === 'fridge' ? 'text-sky-700' : 'text-amber-700'
+                                }`}
+                              >
                                 {formatAmount(item.amount)} {item.unit}
                               </span>
                               <button
@@ -2721,7 +2884,7 @@
                               <button
                                 onClick={() => updateFridgeAmount(item, -(Number(item.amount) || 1))}
                                 className="p-1.5 text-slate-300 hover:text-rose-500"
-                                aria-label="Usuń z lodówki"
+                                aria-label="Usuń z zapasów"
                               >
                                 <Icon name="trash" className="w-4 h-4" />
                               </button>
