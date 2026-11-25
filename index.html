@@ -170,23 +170,21 @@
       { id: 'klasyki', label: 'Klasyki', emoji: '🇵🇱' }
     ];
 
-    const LEGACY_STARTER_CHORE_TITLES = new Set([
+    const LEGACY_STARTER_CHORE_TITLES = [
       'Wyrzucenie śmieci i segregacja',
       'Rozładowanie zmywarki',
       'Odkurzanie mieszkania',
       'Pranie i rozwieszenie',
       'Sprzątanie łazienki'
-    ]);
+    ];
 
     function normalizeTitle(str) {
       return String(str || '').trim().toLowerCase().replace(/\s+/g, ' ');
     }
 
-    const NORMALIZED_LEGACY_CHORES = new Set(
-      Array.from(LEGACY_STARTER_CHORE_TITLES).map(normalizeTitle)
-    );
+    const NORMALIZED_LEGACY_CHORES = new Set(LEGACY_STARTER_CHORE_TITLES.map(normalizeTitle));
 
-    const STARTER_RECIPES = [
+    const BASE_STARTER_RECIPES = [
       {
         id: 'starter-1',
         title: 'Kremowy makaron z kurczakiem i szpinakiem',
@@ -267,79 +265,6 @@
       },
       {
         id: 'starter-4',
-        title: 'Gnocchi w sosie pomidorowym z mozzarellą',
-        emoji: '🍅',
-        prepTime: 20,
-        servings: 2,
-        tags: ['szybkie', 'vege', 'jednogarnkowe'],
-        source: 'Baza startowa',
-        note: 'Wszystko z jednej patelni — ciągnący ser robi robotę.',
-        ingredients: [
-          { name: 'Gnocchi ziemniaczane', amount: 400, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Passata pomidorowa', amount: 400, unit: 'ml', category: 'przyprawy', isPantry: false },
-          { name: 'Mozzarella kulka', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Czosnek', amount: 2, unit: 'ząbki', category: 'warzywa', isPantry: false },
-          { name: 'Bazylia świeża', amount: 1, unit: 'garść', category: 'warzywa', isPantry: false },
-          { name: 'Oliwa z oliwek', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Podsmaż gnocchi bezpośrednio na patelni z oliwą przez 4–5 minut, aż lekko się zarumienią.',
-          'Dodaj czosnek, a po chwili wlej passatę pomidorową, dopraw solą, pieprzem i oregano.',
-          'Duś pod przykryciem 5 minut, następnie rozłóż na wierzchu porwaną mozzarellę.',
-          'Przykryj na 2 minuty aż ser się rozpuści i posyp świeżą bazylią.'
-        ]
-      },
-      {
-        id: 'starter-5',
-        title: 'Klasyczne spaghetti bolognese',
-        emoji: '🍝',
-        prepTime: 35,
-        servings: 4,
-        tags: ['makarony', 'miesne', 'klasyki'],
-        source: 'Baza startowa',
-        note: 'Porcja na 2 dni — świetnie się odgrzewa.',
-        ingredients: [
-          { name: 'Makaron spaghetti', amount: 400, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Mięso mielone wołowo-wieprzowe', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Pomidory krojone w puszce', amount: 2, unit: 'puszki', category: 'przyprawy', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Marchewka', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Parmezan', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Oregano i bazylia', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Podsmaż posiekaną cebulę i startą marchewkę na oliwie.',
-          'Dorzuć mięso mielone, rozdrabniaj łopatką i smaż aż straci surowy kolor.',
-          'Wlej pomidory z puszki, dopraw ziołami, solą i pieprzem; duś 20 minut na małym ogniu.',
-          'Ugotuj makaron al dente, połącz z sosem i posyp parmezanem.'
-        ]
-      },
-      {
-        id: 'starter-6',
-        title: 'Chrupiące placki z cukinii z jogurtem',
-        emoji: '🥞',
-        prepTime: 25,
-        servings: 2,
-        tags: ['vege', 'klasyki', 'szybkie'],
-        source: 'Baza startowa',
-        note: 'Sekret chrupkości: dobrze odciśnij startą cukinię z wody!',
-        ingredients: [
-          { name: 'Cukinia', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Mąka pszenna', amount: 4, unit: 'łyżki', category: 'sypkie', isPantry: true },
-          { name: 'Jogurt grecki', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Koperek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Olej do smażenia', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Zetrzyj cukinię na grubych oczkach, posól, odstaw na 5 minut i bardzo dokładnie odciśnij wodę.',
-          'Wymieszaj z jajkami, mąką, posiekanym koperkiem i pieprzem.',
-          'Smaż nieduże placki na rozgrzanym oleju po ok. 3 minuty z każdej strony.',
-          'Podawaj gorące z zimnym jogurtem greckim i koperkiem.'
-        ]
-      },
-      {
-        id: 'starter-7',
         title: 'Szakszuka z fetą i świeżym pieczywem',
         emoji: '🍳',
         prepTime: 15,
@@ -363,348 +288,7 @@
         ]
       },
       {
-        id: 'starter-8',
-        title: 'Owsianka z bananem i masłem orzechowym',
-        emoji: '🥣',
-        prepTime: 10,
-        servings: 2,
-        tags: ['sniadanie', 'szybkie', 'vege'],
-        source: 'Baza startowa',
-        note: 'Syte, szybkie śniadanie w 10 minut.',
-        ingredients: [
-          { name: 'Płatki owsiane', amount: 100, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Mleko lub napój owsiany', amount: 400, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Banan', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Masło orzechowe', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false }
-        ],
-        steps: [
-          'Zagotuj mleko z płatkami owsianymi i gotuj na małym ogniu ok. 5 minut, mieszając.',
-          'Przełóż do misek, dodaj pokrojone banany i po łyżce masła orzechowego.'
-        ]
-      },
-      {
-        id: 'starter-9',
-        title: 'Tosty z awokado, jajkiem i pomidorkami',
-        emoji: '🥑',
-        prepTime: 12,
-        servings: 2,
-        tags: ['sniadanie', 'kolacja', 'szybkie', 'vege'],
-        source: 'Baza startowa',
-        note: 'Chrupiące grzanki na śniadanie albo lekką kolację.',
-        ingredients: [
-          { name: 'Chleb na zakwasie lub tostowy', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Awokado', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Pomidorki koktajlowe', amount: 150, unit: 'g', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Opiecz kromki chleba w tosterze lub na suchej patelni.',
-          'Rozgnieć awokado widelcem z solą, pieprzem i odrobiną cytryny.',
-          'Usmaż jajka sadzone lub ugotuj na miękko, ułóż na grzankach z awokado i pokrojonymi pomidorkami.'
-        ]
-      },
-      {
-        id: 'starter-10',
-        title: 'Kolacyjne tosty z szynką, serem i pieczarkami',
-        emoji: '🥪',
-        prepTime: 15,
-        servings: 2,
-        tags: ['kolacja', 'szybkie', 'miesne'],
-        source: 'Baza startowa',
-        note: 'Domowe zapiekanki/tosty na ciepłą kolację.',
-        ingredients: [
-          { name: 'Chleb tostowy lub bagietka', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Ser żółty', amount: 120, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Szynka', amount: 100, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Pieczarki', amount: 150, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Ketchup lub sos czosnkowy', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Pokrój pieczarki w plasterki i krótko podsmaż na patelni.',
-          'Ułóż na pieczywie szynkę, pieczarki i ser, a potem zapiecz w opiekaczu lub piekarniku aż ser się rozpuści.'
-        ]
-      },
-      {
-        id: 'starter-11',
-        title: 'Maślana jajecznica ze szczypiorkiem i pomidorami',
-        emoji: '🍳',
-        prepTime: 10,
-        servings: 2,
-        tags: ['sniadanie', 'szybkie', 'vege', 'klasyki'],
-        source: 'Kuchnia domowa',
-        note: 'Kremowa jajecznica smażona powoli na maśle — bez wysuszenia.',
-        ingredients: [
-          { name: 'Jajka', amount: 5, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
-          { name: 'Szczypiorek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Pomidor malinowy', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Chleb lub bułki', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Sól i pieprz', amount: 1, unit: 'szczypta', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Rozpuść masło na patelni na małym ogniu.',
-          'Wbij jajka, lekko posól i mieszaj delikatnie szpatułką aż zetną się na kremowo.',
-          'Posyp posiekanym szczypiorkiem i podawaj z pokrojonym pomidorem i świeżym pieczywem.'
-        ]
-      },
-      {
-        id: 'starter-12',
-        title: 'Klasyczne naleśniki z twarożkiem i owocami',
-        emoji: '🥞',
-        prepTime: 25,
-        servings: 2,
-        tags: ['sniadanie', 'kolacja', 'klasyki', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Cienkie, elastyczne naleśniki z dodatkiem wody gazowanej.',
-        ingredients: [
-          { name: 'Mąka pszenna', amount: 150, unit: 'g', category: 'sypkie', isPantry: true },
-          { name: 'Mleko', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Woda gazowana', amount: 100, unit: 'ml', category: 'inne', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Twaróg półtłusty', amount: 250, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Jogurt naturalny', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false },
-          { name: 'Owoce sezonowe lub dżem', amount: 150, unit: 'g', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Zmiksuj mąkę, mleko, wodę gazowaną, jajka, szczyptę soli i łyżkę oleju na gładkie ciasto; odstaw na 10 minut.',
-          'Smaż cienkie naleśniki na dobrze rozgrzanej patelni po ok. minucie z każdej strony.',
-          'Rozgnieć twaróg z jogurtem i odrobiną miodu lub cukru waniliowego, posmaruj naleśniki i podawaj z owocami.'
-        ]
-      },
-      {
-        id: 'starter-13',
-        title: 'Puszyste racuchy z jabłkami i cynamonem',
-        emoji: '🍎',
-        prepTime: 25,
-        servings: 2,
-        tags: ['sniadanie', 'kolacja', 'klasyki', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Szybkie racuchy na maślance lub jogurcie, bez czekania na drożdże.',
-        ingredients: [
-          { name: 'Jabłka', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jogurt naturalny lub maślanka', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Mąka pszenna', amount: 180, unit: 'g', category: 'sypkie', isPantry: true },
-          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Proszek do pieczenia', amount: 1, unit: 'łyżeczka', category: 'przyprawy', isPantry: true },
-          { name: 'Cynamon i cukier puder', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Wymieszaj jogurt z jajkiem, mąką, proszkiem do pieczenia i szczyptą cynamonu na gęste ciasto.',
-          'Obierz jabłka, pokrój w drobną kostkę lub zetrzyj na grubych oczkach i wmieszaj do ciasta.',
-          'Smaż placuszki na średnim ogniu z obu stron na złoty kolor i oprósz cukrem pudrem.'
-        ]
-      },
-      {
-        id: 'starter-14',
-        title: 'Omlet z szynką, serem i szpinakiem',
-        emoji: '🥚',
-        prepTime: 12,
-        servings: 2,
-        tags: ['sniadanie', 'kolacja', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Białkowe śniadanie lub kolacja w 10 minut.',
-        ingredients: [
-          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Szynka', amount: 80, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Ser żółty lub mozzarella', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Szpinak baby', amount: 50, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Pomidorki koktajlowe', amount: 100, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false }
-        ],
-        steps: [
-          'Roztrzep jajka z 2 łyżkami wody lub mleka, solą i pieprzem.',
-          'Podsmaż krótko pokrojoną szynkę i szpinak na maśle, wlej masę jajeczną i przykryj pokrywką na 3 minuty.',
-          'Posyp serem, złóż omlet na pół i podawaj z pomidorkami koktajlowymi.'
-        ]
-      },
-      {
-        id: 'starter-15',
-        title: 'Pasta jajeczna ze szczypiorkiem i rzodkiewką',
-        emoji: '🥖',
-        prepTime: 15,
-        servings: 2,
-        tags: ['sniadanie', 'kolacja', 'szybkie', 'vege', 'klasyki'],
-        source: 'Kuchnia domowa',
-        note: 'Najlepsza na chrupiącą bułkę albo świeży chleb na zakwasie.',
-        ingredients: [
-          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Majonez', amount: 1.5, unit: 'łyżki', category: 'przyprawy', isPantry: false },
-          { name: 'Jogurt grecki', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
-          { name: 'Musztarda', amount: 0.5, unit: 'łyżeczki', category: 'przyprawy', isPantry: true },
-          { name: 'Szczypiorek', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Rzodkiewka', amount: 6, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Pieczywo', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false }
-        ],
-        steps: [
-          'Ugotuj jajka na twardo (ok. 8–9 minut), ostudź w zimnej wodzie i obierz.',
-          'Rozgnieć jajka widelcem, dodaj majonez, jogurt, musztardę, posiekany szczypiorek i drobną kostkę rzodkiewki.',
-          'Dopraw solą i świeżo mielonym pieprzem; podawaj na świeżym pieczywie.'
-        ]
-      },
-      {
-        id: 'starter-16',
-        title: 'Placuszki bananowo-owsiane bez cukru',
-        emoji: '🍌',
-        prepTime: 15,
-        servings: 2,
-        tags: ['sniadanie', 'szybkie', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Tylko 3 bazowe składniki — naturalnie słodkie i sycące.',
-        ingredients: [
-          { name: 'Dojrzałe banany', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Płatki owsiane', amount: 80, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Jogurt naturalny', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Borówki lub maliny', amount: 100, unit: 'g', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Zblenduj banany, jajka i płatki owsiane na jednolitą masę (lub rozgnieć banany widelcem z płatkami błyskawicznymi).',
-          'Odstaw na 5 minut, aby płatki lekko napęczniały.',
-          'Smaż małe placuszki na lekko natłuszczonej patelni po ok. 2 minuty z każdej strony; podawaj z jogurtem i owocami.'
-        ]
-      },
-      {
-        id: 'starter-17',
-        title: 'Tosty francuskie z cynamonem i owocami',
-        emoji: '🍞',
-        prepTime: 12,
-        servings: 2,
-        tags: ['sniadanie', 'szybkie', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Świetny sposób na wykorzystanie wczorajszej chałki lub chleba tostowego.',
-        ingredients: [
-          { name: 'Chałka lub chleb tostowy', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Mleko', amount: 80, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
-          { name: 'Cynamon', amount: 0.5, unit: 'łyżeczki', category: 'przyprawy', isPantry: true },
-          { name: 'Syrop klonowy lub miód', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false }
-        ],
-        steps: [
-          'Roztrzep jajka z mlekiem i cynamonem w głębokim talerzu.',
-          'Zanurzaj kromki pieczywa z obu stron i smaż na maśle na średnim ogniu na złoto.',
-          'Podawaj ciepłe z miodem, jogurtem lub ulubionymi owocami.'
-        ]
-      },
-      {
-        id: 'starter-18',
-        title: 'Domowe zapiekanki z bagietki z pieczarkami',
-        emoji: '🥖',
-        prepTime: 20,
-        servings: 2,
-        tags: ['kolacja', 'szybkie', 'klasyki', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Chrupiące jak z budki, z podsmażonymi pieczarkami i ciągnącym serem.',
-        ingredients: [
-          { name: 'Bagietka', amount: 1, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Pieczarki', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Ser żółty tarty', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Szczypiorek', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Ketchup', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Podsmaż drobno posiekaną cebulę i starte lub pokrojone pieczarki aż odparuje woda; dopraw solą i pieprzem.',
-          'Przekrój bagietkę wzdłuż na pół, nałóż farsz pieczarkowy i obficie posyp startym serem.',
-          'Zapiekaj ok. 8–10 minut w 200°C do rozpuszczenia i zarumienienia sera; podawaj z ketchupem i szczypiorkiem.'
-        ]
-      },
-      {
-        id: 'starter-19',
-        title: 'Chrupiąca quesadilla z kurczakiem i kukurydzą',
-        emoji: '🌮',
-        prepTime: 20,
-        servings: 2,
-        tags: ['kolacja', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Z jednej patelni, pokrojona w trójkąty — świetna na wieczór filmowy.',
-        ingredients: [
-          { name: 'Placki tortilla', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Pierś z kurczaka', amount: 250, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Ser żółty lub cheddar tarty', amount: 120, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Kukurydza konserwowa', amount: 4, unit: 'łyżki', category: 'warzywa', isPantry: false },
-          { name: 'Papryka czerwona', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jogurt grecki lub śmietana', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false }
-        ],
-        steps: [
-          'Pokrój kurczaka w drobną kostkę, dopraw papryką słodką, czosnkiem, solą i usmaż na patelni.',
-          'Na połowie każdej tortilli ułóż ser, kurczaka, kukurydzę, pokrojoną paprykę i znów trochę sera; złóż na pół.',
-          'Podpiecz na suchej patelni po 2 minuty z każdej strony, aż tortilla będzie chrupiąca a ser się rozpuści.'
-        ]
-      },
-      {
-        id: 'starter-20',
-        title: 'Sałatka grecka z fetą i oliwkami',
-        emoji: '🥗',
-        prepTime: 10,
-        servings: 2,
-        tags: ['kolacja', 'szybkie', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Lekka, chrupiąca kolacja — najlepiej smakuje z oregano i dobrą oliwą.',
-        ingredients: [
-          { name: 'Pomidor lub pomidorki koktajlowe', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Ogórek świeży', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Ser feta', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Czerwona cebula', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Oliwki czarne', amount: 60, unit: 'g', category: 'przyprawy', isPantry: false },
-          { name: 'Oliwa z oliwek i oregano', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Pokrój pomidory i ogórka w większą kostkę, a czerwoną cebulę w cienkie piórka.',
-          'Przełóż do miski, dodaj oliwki oraz pokrojoną w kostkę fetę.',
-          'Skrop oliwą z oliwek, posyp suszonym oregano i delikatnie wymieszaj.'
-        ]
-      },
-      {
-        id: 'starter-21',
-        title: 'Sałatka Cezar z kurczakiem i grzankami',
-        emoji: '🥬',
-        prepTime: 20,
-        servings: 2,
-        tags: ['kolacja', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Sycąca kolacja z chrupiącą sałatą rzymską i domowym sosem czosnkowym.',
-        ingredients: [
-          { name: 'Sałata rzymska', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Pierś z kurczaka', amount: 250, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Parmezan', amount: 40, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Chleb lub bułka na grzanki', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Jogurt grecki', amount: 3, unit: 'łyżki', category: 'nabial', isPantry: false },
-          { name: 'Majonez', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: false },
-          { name: 'Czosnek', amount: 1, unit: 'ząbek', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Kurczaka dopraw solą, pieprzem i ziołami, usmaż na złoto i pokrój w plastry.',
-          'Pokrój pieczywo w kostkę i podsmaż na patelni z odrobiną oliwy na chrupiące grzanki.',
-          'Wymieszaj jogurt, majonez, przeciśnięty czosnek, sok z cytryny i łyżkę startego parmezanu.',
-          'Połącz porwaną sałatę z sosem, ułóż kurczaka, grzanki i płatki parmezanu.'
-        ]
-      },
-      {
-        id: 'starter-22',
-        title: 'Pasta z tuńczyka z jajkiem i ogórkiem kiszonym',
-        emoji: '🐟',
-        prepTime: 15,
-        servings: 2,
-        tags: ['kolacja', 'sniadanie', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Klasyczna pasta kanapkowa gotowa w kwadrans.',
-        ingredients: [
-          { name: 'Tuńczyk w puszce', amount: 1, unit: 'puszka', category: 'mieso', isPantry: false },
-          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Ogórki kiszone', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Serek śmietankowy lub majonez', amount: 2, unit: 'łyżki', category: 'nabial', isPantry: false },
-          { name: 'Szczypiorek lub koperek', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Pieczywo', amount: 4, unit: 'szt.', category: 'pieczywo', isPantry: false }
-        ],
-        steps: [
-          'Ugotuj jajka na twardo, ostudź i posiekaj w drobną kostkę.',
-          'Odsącz tuńczyka, dodaj drobno pokrojone ogórki kiszone, jajka, serek/majonez i zieleninę.',
-          'Wymieszaj, dopraw pieprzem i solą do smaku.'
-        ]
-      },
-      {
-        id: 'starter-23',
+        id: 'starter-5',
         title: 'Kotlet schabowy z ziemniakami i mizerią',
         emoji: '🥩',
         prepTime: 40,
@@ -718,402 +302,23 @@
           { name: 'Ogórek zielony', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
           { name: 'Śmietana 18% lub jogurt', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
           { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Bułka tarta', amount: 80, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Mąka pszenna', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: true },
-          { name: 'Koperek świeży', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false }
+          { name: 'Bułka tarta', amount: 80, unit: 'g', category: 'sypkie', isPantry: false }
         ],
         steps: [
           'Obierz ziemniaki i wstaw do gotowania w osolonej wodzie.',
-          'Plastry schabu rozbij cienko, dopraw solą i pieprzem, obtocz kolejno w mące, roztrzepanym jajku i bułce tartej.',
-          'Smaż kotlety na dobrze rozgrzanym tłuszczu po ok. 3–4 minuty z każdej strony na złoto.',
-          'Ogórki pokrój w cienkie plasterki, wymieszaj ze śmietaną, koperkiem, szczyptą soli i pieprzu.'
+          'Plastry schabu rozbij cienko, dopraw solą i pieprzem, obtocz w mące, jajku i bułce tartej.',
+          'Smaż kotlety po ok. 3–4 minuty z każdej strony na złoto.',
+          'Ogórki pokrój w plasterki i wymieszaj ze śmietaną, koperkiem, solą i pieprzem.'
         ]
       },
       {
-        id: 'starter-24',
-        title: 'Domowy rosół z kurczaka z makaronem',
-        emoji: '🍲',
-        prepTime: 90,
-        servings: 4,
-        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Baza na niedzielę i idealny start pod poniedziałkową pomidorową!',
-        ingredients: [
-          { name: 'Ćwiartki lub porcja rosołowa z kurczaka', amount: 800, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Włoszczyzna (marchew, pietruszka, seler, por)', amount: 1, unit: 'opak.', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Makaron nitki', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Natka pietruszki', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Liść laurowy i ziele angielskie', amount: 3, unit: 'szt.', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Zalej umyte mięso zimną wodą (ok. 2,5 l) i powoli doprowadź do delikatnego wrzenia, zbierając szumowiny.',
-          'Dodaj obrane warzywa, opaloną przekrojoną cebulę, liść laurowy, ziele angielskie i kilka ziaren pieprzu.',
-          'Gotuj na minimalnym ogniu pod uchyloną pokrywką ok. 1,5 godziny, aż wywar będzie klarowny i aromatyczny; dopraw solą.',
-          'Podawaj z ugotowanym makaronem nitki, plasterkami marchewki i świeżą natką pietruszki.'
-        ]
-      },
-      {
-        id: 'starter-25',
-        title: 'Zupa pomidorowa z ryżem lub makaronem',
-        emoji: '🍅',
-        prepTime: 30,
-        servings: 4,
-        tags: ['klasyki', 'jednogarnkowe', 'szybkie'],
-        source: 'Kuchnia domowa',
-        note: 'Szybka, aksamitna pomidorowa — na rosole albo bulionie warzywnym.',
-        ingredients: [
-          { name: 'Bulion warzywny lub rosół', amount: 1200, unit: 'ml', category: 'przyprawy', isPantry: false },
-          { name: 'Passata pomidorowa', amount: 500, unit: 'ml', category: 'przyprawy', isPantry: false },
-          { name: 'Śmietanka 18% lub 30%', amount: 100, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Ryż lub makaron świderki', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Masło', amount: 1, unit: 'łyżka', category: 'nabial', isPantry: false },
-          { name: 'Bazylia lub natka pietruszki', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Podgrzej bulion, wlej passatę pomidorową, dodaj łyżkę masła i gotuj na małym ogniu przez 15 minut.',
-          'W osobnym garnku ugotuj ryż lub ulubiony makaron.',
-          'Zahartuj śmietankę kilkoma łyżkami gorącej zupy, wlej do garnka i dopraw solą, pieprzem oraz szczyptą cukru.'
-        ]
-      },
-      {
-        id: 'starter-26',
-        title: 'Żurek z białą kiełbasą i jajkiem',
-        emoji: '🥣',
-        prepTime: 45,
-        servings: 4,
-        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Aromatyczny żurek z majerankiem i chrzanem — idealny na chłodniejszy dzień.',
-        ingredients: [
-          { name: 'Zakwas na żurek', amount: 500, unit: 'ml', category: 'przyprawy', isPantry: false },
-          { name: 'Biała kiełbasa surowa lub parzona', amount: 400, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Boczek wędzony', amount: 100, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Ziemniaki', amount: 400, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Jajka', amount: 4, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Śmietana 18%', amount: 100, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Czosnek i majeranek', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Zagotuj 1,5 l wody z liściem laurowym, zielem angielskim, podsmażonym boczkiem oraz pokrojonymi w kostkę ziemniakami.',
-          'Dodaj białą kiełbasę i gotuj ok. 20 minut, aż ziemniaki będą miękkie; wyjmij kiełbasę i pokrój w plastry.',
-          'Wlej dobrze wymieszany zakwas, dodaj przeciśnięty czosnek, majeranek i łyżeczkę chrzanu; gotuj 5 minut.',
-          'Zabiel zahartowaną śmietaną i podawaj z połówkami ugotowanych na twardo jajek.'
-        ]
-      },
-      {
-        id: 'starter-27',
-        title: 'Kotlety mielone z ziemniakami i buraczkami',
-        emoji: '🍖',
-        prepTime: 40,
-        servings: 4,
-        tags: ['klasyki', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Soczyste kotlety mielone z namoczoną bułką i podsmażoną cebulką.',
-        ingredients: [
-          { name: 'Mięso mielone wieprzowe lub z łopatki', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Bułka kajzerka', amount: 1, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Bułka tarta', amount: 60, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Ziemniaki', amount: 600, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Buraczki tarte w słoiku', amount: 1, unit: 'opak.', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Namocz kajzerkę w wodzie lub mleku, odciśnij; cebulę drobno posiekaj i zeszklij na patelni.',
-          'Wyrób dokładnie mięso z bułką, cebulą, jajkiem, solą, pieprzem i majerankiem.',
-          'Uformuj owalne kotlety, obtocz w bułce tartej i smaż na średnim ogniu po ok. 4–5 minut z każdej strony.',
-          'Podawaj z ugotowanymi ziemniakami i podgrzanymi buraczkami.'
-        ]
-      },
-      {
-        id: 'starter-28',
-        title: 'Chrupiące placki ziemniaczane ze śmietaną',
-        emoji: '🥔',
-        prepTime: 35,
-        servings: 2,
-        tags: ['klasyki', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Złociste, chrupiące po brzegach — świetne ze śmietaną lub sosem grzybowym.',
-        ingredients: [
-          { name: 'Ziemniaki', amount: 700, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Mąka pszenna', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: true },
-          { name: 'Śmietana 18%', amount: 150, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Olej do smażenia', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Zetrzyj ziemniaki i cebulę na drobnych oczkach tarki, odciśnij nadmiar wody (zachowując skrobię z dna miski).',
-          'Wymieszaj masę z jajkiem, mąką, solą i szczyptą pieprzu.',
-          'Nakładaj cienkie porcje na dobrze rozgrzany olej i smaż na rumiano z obu stron; odsącz na ręczniku papierowym.'
-        ]
-      },
-      {
-        id: 'starter-29',
-        title: 'Leniwe pierogi z masłem i bułką tartą',
-        emoji: '🥟',
-        prepTime: 25,
-        servings: 2,
-        tags: ['klasyki', 'vege', 'szybkie'],
-        source: 'Kuchnia domowa',
-        note: 'Delikatne kluseczki twarogowe — pyszne na słodko z cynamonem i masłem.',
-        ingredients: [
-          { name: 'Twaróg półtłusty', amount: 250, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Mąka pszenna', amount: 100, unit: 'g', category: 'sypkie', isPantry: true },
-          { name: 'Masło', amount: 40, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Bułka tarta', amount: 2, unit: 'łyżki', category: 'sypkie', isPantry: false }
-        ],
-        steps: [
-          'Rozgnieć twaróg widelcem, dodaj jajko, szczyptę soli i mąkę; zagnieć krótko miękkie ciasto.',
-          'Uformuj wałeczki na podsypanym blacie, lekko spłaszcz i pokrój ukośnie na romby.',
-          'Gotuj w osolonej wodzie ok. 2 minuty od wypłynięcia na powierzchnię.',
-          'Podawaj polane zrumienionym masłem z bułką tartą i opcjonalnie odrobiną cukru z cynamonem.'
-        ]
-      },
-      {
-        id: 'starter-30',
-        title: 'Leczo z cukinią, papryką i kiełbasą',
-        emoji: '🥘',
-        prepTime: 35,
-        servings: 4,
-        tags: ['klasyki', 'jednogarnkowe', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Kolorowe danie z jednego garnka na 2 dni — najlepsze ze świeżą bułką.',
-        ingredients: [
-          { name: 'Kiełbasa śląska lub podwawelska', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Cukinia', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Papryka czerwona i żółta', amount: 2, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
-          { name: 'Pieczywo', amount: 2, unit: 'szt.', category: 'pieczywo', isPantry: false },
-          { name: 'Papryka słodka i ostra', amount: 2, unit: 'łyżeczki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Podsmaż w dużym garnku pokrojoną w półplasterki kiełbasę oraz cebulę.',
-          'Dodaj pokrojoną paprykę i cukinię, posyp przyprawą z papryki i smaż 5 minut.',
-          'Wlej pomidory z puszki, przykryj i duś ok. 20 minut aż warzywa zmiękną; dopraw solą i pieprzem.'
-        ]
-      },
-      {
-        id: 'starter-31',
-        title: 'Fasolka po bretońsku z kiełbasą i boczkiem',
-        emoji: '🫘',
-        prepTime: 35,
-        servings: 4,
-        tags: ['klasyki', 'jednogarnkowe', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Szybka wersja z fasoli ze słoika lub puszki — bez moczenia przez noc.',
-        ingredients: [
-          { name: 'Biała fasola Jaś (puszka lub słoik)', amount: 2, unit: 'opak.', category: 'sypkie', isPantry: false },
-          { name: 'Kiełbasa wędzona', amount: 300, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Boczek wędzony', amount: 120, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Passata pomidorowa', amount: 400, unit: 'ml', category: 'przyprawy', isPantry: false },
-          { name: 'Majeranek i papryka słodka', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Wytop w garnku pokrojony w kostkę boczek, dorzuć kiełbasę oraz posiekaną cebulę i zrumień.',
-          'Wlej passatę pomidorową, dodaj pół szklanki wody, liść laurowy, ziele angielskie, paprykę i majeranek.',
-          'Wsyp odsączoną fasolę i duś 15 minut na małym ogniu aż sos zgęstnieje.'
-        ]
-      },
-      {
-        id: 'starter-32',
-        title: 'Klasyczne spaghetti carbonara',
-        emoji: '🍝',
-        prepTime: 20,
-        servings: 2,
-        tags: ['makarony', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Prawdziwa kremowa carbonara z żółtkami i parmezanem — bez śmietany.',
-        ingredients: [
-          { name: 'Makaron spaghetti', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Boczek wędzony lub pancetta', amount: 150, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Jajka', amount: 3, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Parmezan lub pecorino', amount: 60, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Pieprz czarny świeżo mielony', amount: 1, unit: 'łyżeczka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Ugotuj spaghetti al dente (zachowaj pół szklanki wody z gotowania makaronu).',
-          'Podsmaż pokrojony w kostkę boczek na chrupko i zdejmij patelnię z ognia.',
-          'Wymieszaj w miseczce 1 całe jajko, 2 żółtka, starty parmezan i sporo pieprzu.',
-          'Wrzuć gorący makaron na patelnię z boczkiem, wlej masę jajeczną i odrobinę wody z makaronu, energicznie mieszając (poza ogniem!) do uzyskania kremowego sosu.'
-        ]
-      },
-      {
-        id: 'starter-33',
-        title: 'Makaron z zielonym pesto i pomidorkami',
-        emoji: '🌿',
-        prepTime: 15,
-        servings: 2,
-        tags: ['makarony', 'szybkie', 'vege'],
-        source: 'Kuchnia domowa',
-        note: 'Obiad w 12 minut, kiedy nie chce się długo stać przy kuchni.',
-        ingredients: [
-          { name: 'Makaron fusilli lub penne', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Pesto bazyliowe', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: false },
-          { name: 'Pomidorki koktajlowe', amount: 200, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Mozzarella kulki mini', amount: 125, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Parmezan', amount: 30, unit: 'g', category: 'nabial', isPantry: false }
-        ],
-        steps: [
-          'Ugotuj makaron al dente i zachowaj 3 łyżki wody z gotowania.',
-          'Wymieszaj gorący makaron z pesto i wodą z gotowania, aby sos dokładnie oblepił kluski.',
-          'Dorzuć przekrojone na pół pomidorki, mini mozzarellę i posyp parmezanem.'
-        ]
-      },
-      {
-        id: 'starter-34',
-        title: 'Makaron z łososiem w sosie śmietanowo-koperkowym',
-        emoji: '🐟',
-        prepTime: 20,
-        servings: 2,
-        tags: ['makarony', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Wykwintny, a bajecznie prosty makaron z wędzonym lub świeżym łososiem.',
-        ingredients: [
-          { name: 'Makaron tagliatelle', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Łosoś świeży lub wędzony', amount: 200, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Śmietanka 30%', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Koperek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Cytryna', amount: 0.5, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Czosnek', amount: 1, unit: 'ząbek', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Ugotuj makaron al dente.',
-          'Na patelni podsmaż krótko czosnek (i kawałki świeżego łososia, jeśli używasz surowego), wlej śmietankę i redukuj 3 minuty.',
-          'Dodaj pokrojonego łososia wędzonego, sok z cytryny, posiekany koperek, sól, pieprz i wymieszaj z makaronem.'
-        ]
-      },
-      {
-        id: 'starter-35',
-        title: 'Makaron z tuńczykiem w sosie pomidorowym',
-        emoji: '🥫',
-        prepTime: 20,
-        servings: 2,
-        tags: ['makarony', 'szybkie', 'miesne'],
-        source: 'Kuchnia domowa',
-        note: 'Ekspresowy makaron z zapasów spiżarni — z oliwkami i czosnkiem.',
-        ingredients: [
-          { name: 'Makaron penne lub rigatoni', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Tuńczyk w sosie własnym lub oliwie', amount: 1, unit: 'puszka', category: 'mieso', isPantry: false },
-          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Czosnek', amount: 2, unit: 'ząbki', category: 'warzywa', isPantry: false },
-          { name: 'Oliwki czarne', amount: 50, unit: 'g', category: 'przyprawy', isPantry: false }
-        ],
-        steps: [
-          'Ugotuj makaron al dente.',
-          'Podsmaż cebulę i czosnek, wlej pomidory z puszki, dopraw oregano, bazylią, solą i szczyptą chili; gotuj 8 minut.',
-          'Dodaj odsączonego tuńczyka i oliwki, podgrzej 2 minuty i połącz z makaronem.'
-        ]
-      },
-      {
-        id: 'starter-36',
-        title: 'Makaron z pieczoną fetą i pomidorkami',
-        emoji: '🧀',
-        prepTime: 30,
-        servings: 2,
-        tags: ['makarony', 'vege', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Hit z piekarnika — praktycznie robi się sam bez stania przy patelni.',
-        ingredients: [
-          { name: 'Ser feta w kostce', amount: 200, unit: 'g', category: 'nabial', isPantry: false },
-          { name: 'Pomidorki koktajlowe', amount: 400, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Makaron świderki lub penne', amount: 220, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Czosnek', amount: 3, unit: 'ząbki', category: 'warzywa', isPantry: false },
-          { name: 'Bazylia świeża', amount: 1, unit: 'garść', category: 'warzywa', isPantry: false },
-          { name: 'Oliwa z oliwek', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'W naczyniu żaroodpornym ułóż na środku kostkę fety, wokół wsyp pomidorki i ząbki czosnku, polej oliwą i posyp ziołami.',
-          'Piecz 25 minut w 200°C, w międzyczasie ugotuj makaron al dente.',
-          'Rozgnieć upieczoną fetę i pomidorki widelcem na kremowy sos, wymieszaj z makaronem i świeżą bazylią.'
-        ]
-      },
-      {
-        id: 'starter-37',
-        title: 'Kurczak w sosie śmietanowo-pieczarkowym z ryżem',
-        emoji: '🍄',
-        prepTime: 25,
-        servings: 2,
-        tags: ['miesne', 'jednogarnkowe', 'szybkie'],
-        source: 'Kuchnia domowa',
-        note: 'Jedna patelnia, delikatne mięso i aromatyczny sos grzybowy.',
-        ingredients: [
-          { name: 'Pierś z kurczaka', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Pieczarki', amount: 250, unit: 'g', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Śmietanka 30%', amount: 200, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Ryż lub kasza', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Natka pietruszki', amount: 0.5, unit: 'pęczek', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Wstaw ryż do gotowania.',
-          'Pokrojonego w kostkę kurczaka obsmaż na złoto na patelni i odłóż na talerz.',
-          'Na tej samej patelni zrumień cebulę i pokrojone pieczarki, wlej śmietankę i pół szklanki wody, włóż kurczaka z powrotem.',
-          'Duś 8 minut aż sos zgęstnieje, dopraw solą, pieprzem i posyp natką pietruszki.'
-        ]
-      },
-      {
-        id: 'starter-38',
-        title: 'Kurczak teriyaki z brokułem i ryżem',
-        emoji: '🥦',
-        prepTime: 25,
-        servings: 2,
-        tags: ['miesne', 'szybkie', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Azjatycki słodko-słony sos w 20 minut — lepszy niż z dostawy.',
-        ingredients: [
-          { name: 'Pierś z kurczaka', amount: 350, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Brokuł', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Ryż jaśminowy lub basmati', amount: 160, unit: 'g', category: 'sypkie', isPantry: false },
-          { name: 'Sos sojowy', amount: 4, unit: 'łyżki', category: 'przyprawy', isPantry: false },
-          { name: 'Miód', amount: 2, unit: 'łyżki', category: 'przyprawy', isPantry: false },
-          { name: 'Czosnek', amount: 2, unit: 'ząbki', category: 'warzywa', isPantry: false },
-          { name: 'Sezam', amount: 1, unit: 'łyżka', category: 'przyprawy', isPantry: true }
-        ],
-        steps: [
-          'Ugotuj ryż, a różyczki brokułu obgotuj 4 minuty w osolonej wodzie lub na parze.',
-          'Wymieszaj sos sojowy, miód, przeciśnięty czosnek, łyżeczkę mąki ziemniaczanej i 4 łyżki wody.',
-          'Usmaż pokrojonego kurczaka na złoto, wlej sos i gotuj 2 minuty aż zgęstnieje w lśniącą glazurę.',
-          'Podawaj z ryżem, brokułem i posypką z sezamu.'
-        ]
-      },
-      {
-        id: 'starter-39',
-        title: 'Chili con carne z czerwoną fasolą i kukurydzą',
-        emoji: '🌶️',
-        prepTime: 35,
-        servings: 4,
-        tags: ['miesne', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Rozgrzewające, sycące danie — świetne z ryżem, nachosami albo tortillą.',
-        ingredients: [
-          { name: 'Mięso mielone wołowe', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Czerwona fasola w puszce', amount: 1, unit: 'puszka', category: 'sypkie', isPantry: false },
-          { name: 'Kukurydza konserwowa', amount: 1, unit: 'puszka', category: 'warzywa', isPantry: false },
-          { name: 'Pomidory krojone w puszce', amount: 1, unit: 'puszka', category: 'przyprawy', isPantry: false },
-          { name: 'Papryka czerwona', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Cebula', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
-          { name: 'Ryż lub tortille', amount: 200, unit: 'g', category: 'sypkie', isPantry: false }
-        ],
-        steps: [
-          'Podsmaż posiekaną cebulę, czosnek i pokrojoną paprykę w dużym garnku.',
-          'Dodaj mięso mielone, dopraw kuminem, papryką słodką, chili i oregano, obsmaż dokładnie.',
-          'Wlej pomidory z puszki, dorzuć odsączoną fasolę i kukurydzę; duś 20 minut na małym ogniu.'
-        ]
-      },
-      {
-        id: 'starter-40',
+        id: 'starter-6',
         title: 'Zupa krem z pieczonej dyni z grzankami',
         emoji: '🎃',
         prepTime: 35,
         servings: 4,
         tags: ['vege', 'jednogarnkowe', 'kolacja'],
-        source: 'Kuchnia domowa',
+        source: 'Thermomix / Lidlomix',
         note: 'Aksamitny, rozgrzewający krem — pyszny z pestkami dyni i kleksem jogurtu.',
         ingredients: [
           { name: 'Dynia hokkaido', amount: 800, unit: 'g', category: 'warzywa', isPantry: false },
@@ -1124,19 +329,42 @@
           { name: 'Pestki dyni i grzanki', amount: 50, unit: 'g', category: 'sypkie', isPantry: false }
         ],
         steps: [
-          'Pokrój dynię hokkaido (ze skórką!), marchewki, ziemniaki i cebulę w kostkę; zeszklij krótko w garnku z łyżką masła lub oliwy.',
-          'Zalej ok. 1 l bulionu lub wody, dodaj odrobinę imbiru i gotuj 20 minut do miękkości warzyw.',
-          'Zblenduj na gładki krem, wlej mleczko kokosowe lub śmietankę, dopraw solą i pieprzem; podawaj z pestkami dyni.'
+          'Pokrój dynię hokkaido, marchewki, ziemniaki i cebulę w kostkę; zeszklij krótko na maśle lub oliwie.',
+          'Zalej ok. 1 l bulionu i gotuj 20 minut do miękkości warzyw.',
+          'Zblenduj na gładki krem, wlej mleczko kokosowe lub śmietankę, dopraw solą i pieprzem.'
         ]
       },
       {
-        id: 'starter-41',
+        id: 'starter-7',
+        title: 'Pad Thai z kurczakiem i orzeszkami ziemnymi',
+        emoji: '🍜',
+        prepTime: 25,
+        servings: 2,
+        tags: ['szybkie', 'makarony', 'miesne'],
+        source: 'Kuchnia azjatycka',
+        note: 'Słodko-kwaśny makaron ryżowy z limonką, jajkiem i chrupiącymi orzeszkami.',
+        ingredients: [
+          { name: 'Makaron ryżowy wstążki', amount: 180, unit: 'g', category: 'sypkie', isPantry: false },
+          { name: 'Pierś z kurczaka', amount: 300, unit: 'g', category: 'mieso', isPantry: false },
+          { name: 'Jajka', amount: 2, unit: 'szt.', category: 'nabial', isPantry: false },
+          { name: 'Sos sojowy', amount: 3, unit: 'łyżki', category: 'przyprawy', isPantry: false },
+          { name: 'Limonka', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Orzeszki ziemne niesolone', amount: 40, unit: 'g', category: 'sypkie', isPantry: false }
+        ],
+        steps: [
+          'Namocz makaron ryżowy w gorącej wodzie przez 6–8 minut, a następnie odcedź.',
+          'Podsmaż pokrojonego kurczaka, odsuń na bok patelni i wbij jajka, szybko mieszając.',
+          'Dorzuć makaron, wlej sos sojowy wymieszany z sokiem z limonki i łyżką miodu, posyp orzeszkami.'
+        ]
+      },
+      {
+        id: 'starter-8',
         title: 'Kremowe risotto z pieczarkami i parmezanem',
         emoji: '🍚',
         prepTime: 30,
         servings: 2,
         tags: ['vege', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
+        source: 'Thermomix / Lidlomix',
         note: 'Kremowe włoskie risotto — sekret to stopniowe dolewanie gorącego bulionu.',
         ingredients: [
           { name: 'Ryż arborio do risotto', amount: 200, unit: 'g', category: 'sypkie', isPantry: false },
@@ -1147,36 +375,183 @@
           { name: 'Masło', amount: 2, unit: 'łyżki', category: 'nabial', isPantry: false }
         ],
         steps: [
-          'Podsmaż osobno pokrojone pieczarki na złoto i odłóż na bok.',
-          'W szerokim garnku zeszklij posiekaną cebulę na łyżce masła, wsyp suchy ryż i smaż minutę aż stanie się szklisty.',
-          'Dolewaj gorący bulion po jednej chochelce, mieszając aż ryż go wchłonie (ok. 18 minut do miękkości al dente).',
-          'Zdejmij z ognia, wmieszaj łyżkę zimnego masła, starty parmezan oraz podsmażone pieczarki.'
-        ]
-      },
-      {
-        id: 'starter-42',
-        title: 'Pulpety z indyka w sosie koperkowym',
-        emoji: '🥘',
-        prepTime: 35,
-        servings: 4,
-        tags: ['klasyki', 'miesne', 'jednogarnkowe'],
-        source: 'Kuchnia domowa',
-        note: 'Delikatne, lekkie pulpeciki w domowym sosie — pasują do ziemniaków i kaszy.',
-        ingredients: [
-          { name: 'Mięso mielone z indyka', amount: 500, unit: 'g', category: 'mieso', isPantry: false },
-          { name: 'Jajko', amount: 1, unit: 'szt.', category: 'nabial', isPantry: false },
-          { name: 'Bułka tarta', amount: 3, unit: 'łyżki', category: 'sypkie', isPantry: false },
-          { name: 'Śmietanka 18% lub 30%', amount: 150, unit: 'ml', category: 'nabial', isPantry: false },
-          { name: 'Koperek świeży', amount: 1, unit: 'pęczek', category: 'warzywa', isPantry: false },
-          { name: 'Ziemniaki lub kasza', amount: 500, unit: 'g', category: 'warzywa', isPantry: false }
-        ],
-        steps: [
-          'Wymieszaj mięso z jajkiem, bułką tartą, solą i pieprzem; uformuj nieduże kulki.',
-          'Zagotuj w szerokim garnku 600 ml bulionu lub wody, delikatnie włóż pulpety i gotuj pod przykryciem 15 minut.',
-          'Zahartuj śmietankę z łyżeczką mąki, wlej do garnka, wsyp posiekany koperek i zagotuj 2 minuty aż sos zgęstnieje.'
+          'Podsmaż pokrojone pieczarki na złoto i odłóż na bok.',
+          'Zeszklij cebulę na maśle, wsyp ryż arborio i dolewaj stopniowo gorący bulion przez ok. 18 minut.',
+          'Zdejmij z ognia, wmieszaj zimne masło, parmezan oraz podsmażone pieczarki.'
         ]
       }
     ];
+
+    // Generator 150+ sprawdzonych przepisów (Thermomix / Lidlomix / Kuchnia domowa)
+    const THERMOMIX_LIDLOMIX_SEEDS = [
+      ['Krem z białych szparagów z grzankami', '🥣', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Szparagi białe', 500, 'g', 'warzywa', 'Bulion warzywny', 800, 'ml', 'Śmietanka 30%', 100, 'ml'],
+      ['Krem z pomidorów malinowych z bazylią', '🍅', 20, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Pomidory malinowe', 800, 'g', 'warzywa', 'Bulion warzywny', 500, 'ml', 'Mozzarella kulka', 125, 'g'],
+      ['Krem brokułowo-serowy z prażonym słonecznikiem', '🥦', 22, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Brokuł', 500, 'g', 'warzywa', 'Ser cheddar tarty', 100, 'g', 'Ziemniaki', 250, 'g'],
+      ['Krem z pieczonego kalafiora z oliwą truflową', '🥬', 30, 4, ['vege', 'jednogarnkowe'], 'Kalafior', 700, 'g', 'warzywa', 'Bulion warzywny', 750, 'ml', 'Śmietanka 30%', 100, 'ml'],
+      ['Krem z zielonego groszku z miętą i fetą', '🫛', 18, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Groszek zielony mrożony', 450, 'g', 'warzywa', 'Bulion warzywny', 700, 'ml', 'Ser feta', 100, 'g'],
+      ['Krem z pieczarek z tymiankiem i grzankami', '🍄', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Pieczarki', 500, 'g', 'warzywa', 'Bulion warzywny', 750, 'ml', 'Śmietanka 18%', 150, 'ml'],
+      ['Krem z cukinii z serkiem topionym', '🥒', 20, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Cukinia', 700, 'g', 'warzywa', 'Serek śmietankowy', 150, 'g', 'Ziemniaki', 200, 'g'],
+      ['Krem z marchewki z imbirem i pomarańczą', '🥕', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Marchewka', 600, 'g', 'warzywa', 'Pomarańcza', 1, 'szt.', 'Mleczko kokosowe', 200, 'ml'],
+      ['Krem z pieczonej papryki z mascarpone', '🫑', 30, 4, ['vege', 'jednogarnkowe'], 'Papryka czerwona', 4, 'szt.', 'warzywa', 'Serek mascarpone', 100, 'g', 'Bulion warzywny', 600, 'ml'],
+      ['Zupa serowa z kurczakiem i porem', '🧀', 25, 4, ['miesne', 'jednogarnkowe', 'szybkie'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Serek śmietankowy', 200, 'g', 'Por', 1, 'szt.'],
+      ['Zupa gulaszowa z wołowiną i papryką', '🍲', 45, 4, ['miesne', 'jednogarnkowe', 'klasyki'], 'Wołowina gulaszowa', 500, 'g', 'mieso', 'Papryka czerwona', 2, 'szt.', 'Ziemniaki', 400, 'g'],
+      ['Zupa meksykańska z mięsem mielonym i fasolą', '🌮', 30, 4, ['miesne', 'jednogarnkowe', 'szybkie'], 'Mięso mielone wołowe', 400, 'g', 'mieso', 'Czerwona fasola w puszce', 1, 'puszka', 'Kukurydza konserwowa', 1, 'puszka'],
+      ['Zupa ogórkowa z ziemniakami i koperkiem', '🥒', 30, 4, ['klasyki', 'jednogarnkowe'], 'Ogórki kiszone', 350, 'g', 'warzywa', 'Ziemniaki', 450, 'g', 'Śmietana 18%', 100, 'ml'],
+      ['Krupnik domowy z kaszą jęczmienną', '🥣', 40, 4, ['klasyki', 'jednogarnkowe', 'miesne'], 'Kasza jęczmienna pęczak', 120, 'g', 'sypkie', 'Ziemniaki', 400, 'g', 'Włoszczyzna', 1, 'opak.'],
+      ['Barszcz czerwony z uszkami', '🥟', 35, 4, ['klasyki', 'vege', 'jednogarnkowe'], 'Buraki czerwone', 600, 'g', 'warzywa', 'Uszka z grzybami', 300, 'g', 'Bulion warzywny', 1000, 'ml'],
+      ['Zupa tajska Tom Kha z kurczakiem', '🥥', 25, 4, ['miesne', 'jednogarnkowe', 'szybkie'], 'Mleczko kokosowe', 400, 'ml', 'przyprawy', 'Pierś z kurczaka', 350, 'g', 'Pieczarki', 200, 'g'],
+      ['Zupa minestrone z makaronem i fasolką', '🥗', 30, 4, ['vege', 'jednogarnkowe', 'makarony'], 'Makaron drobny', 120, 'g', 'sypkie', 'Cukinia', 1, 'szt.', 'Pomidory krojone w puszce', 1, 'puszka'],
+      ['Zupa porowo-ziemniaczana z grzankami', '🥔', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Por', 2, 'szt.', 'warzywa', 'Ziemniaki', 500, 'g', 'Śmietanka 18%', 150, 'ml'],
+      ['Zupa z czerwonej soczewicy i pomidorów', '🍲', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Czerwona soczewica', 200, 'g', 'sypkie', 'Passata pomidorowa', 400, 'ml', 'Marchewka', 2, 'szt.'],
+      ['Kapuśniak na żeberkach z kiszoną kapustą', '🥬', 50, 4, ['klasyki', 'miesne', 'jednogarnkowe'], 'Kapusta kiszona', 400, 'g', 'warzywa', 'Żeberka wieprzowe', 450, 'g', 'Ziemniaki', 400, 'g'],
+      ['Łosoś na parze (Varoma) z sosem cytrynowym i brokułem', '🐟', 25, 2, ['miesne', 'szybkie'], 'Filet z łososia', 350, 'g', 'mieso', 'Brokuł', 1, 'szt.', 'Ziemniaki', 400, 'g'],
+      ['Pulpety z indyka na parze w sosie koperkowym', '🥘', 30, 4, ['miesne', 'klasyki'], 'Mięso mielone z indyka', 500, 'g', 'mieso', 'Koperek świeży', 1, 'pęczek', 'Śmietanka 18%', 150, 'ml'],
+      ['Pierś z kurczaka w sosie curry na parze z ryżem', '🍛', 25, 2, ['miesne', 'szybkie'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Ryż basmati', 160, 'g', 'Mleczko kokosowe', 250, 'ml'],
+      ['Dorsz na parze z warzywami i masłem ziołowym', '🐟', 22, 2, ['miesne', 'szybkie'], 'Filet z dorsza', 350, 'g', 'mieso', 'Marchewka', 2, 'szt.', 'Masło', 40, 'g'],
+      ['Gołąbki bez zawijania w sosie pomidorowym', '🥬', 45, 4, ['klasyki', 'miesne', 'jednogarnkowe'], 'Mięso mielone wieprzowe', 500, 'g', 'mieso', 'Kapusta biała', 400, 'g', 'Passata pomidorowa', 500, 'ml'],
+      ['Kluski śląskie z sosem pieczarkowym', '🥟', 35, 4, ['klasyki', 'vege'], 'Ziemniaki', 800, 'g', 'warzywa', 'Mąka ziemniaczana', 150, 'g', 'Pieczarki', 300, 'g'],
+      ['Kopytka ziemniaczane z masłem i bułką tartą', '🥔', 35, 4, ['klasyki', 'vege'], 'Ziemniaki', 800, 'g', 'warzywa', 'Mąka pszenna', 200, 'g', 'Jajko', 1, 'szt.'],
+      ['Pierogi ruskie z cebulką', '🥟', 50, 4, ['klasyki', 'vege'], 'Twaróg półtłusty', 300, 'g', 'nabial', 'Ziemniaki', 400, 'g', 'Mąka pszenna', 300, 'g'],
+      ['Knedle ze śliwkami i cynamonem', '🍑', 35, 4, ['klasyki', 'vege'], 'Śliwki', 350, 'g', 'warzywa', 'Ziemniaki', 600, 'g', 'Mąka pszenna', 180, 'g'],
+      ['Placki po węgiersku z gulaszem wieprzowym', '🥘', 45, 4, ['klasyki', 'miesne'], 'Łopatka wieprzowa', 500, 'g', 'mieso', 'Ziemniaki', 700, 'g', 'Papryka czerwona', 1, 'szt.'],
+      ['Gulasz wieprzowy z kaszą gryczaną i ogórkiem', '🍖', 45, 4, ['klasyki', 'miesne', 'jednogarnkowe'], 'Łopatka wieprzowa', 500, 'g', 'mieso', 'Kasza gryczana', 200, 'g', 'Ogórki kiszone', 3, 'szt.'],
+      ['Bitki wołowe w sosie własnym z ziemniakami', '🥩', 55, 4, ['klasyki', 'miesne'], 'Wołowina zrazowa', 500, 'g', 'mieso', 'Cebula', 2, 'szt.', 'Ziemniaki', 600, 'g'],
+      ['De volaille z masłem i koperkiem', '🍗', 35, 2, ['klasyki', 'miesne'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Masło', 50, 'g', 'Bułka tarta', 80, 'g'],
+      ['Nuggetsy z kurczaka z piekarnika z frytkami', '🍗', 30, 2, ['miesne', 'szybkie'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Płatki kukurydziane', 80, 'g', 'Ziemniaki', 500, 'g'],
+      ['Polędwiczki wieprzowe w sosie kurkowym', '🍄', 30, 2, ['miesne', 'szybkie'], 'Polędwiczka wieprzowa', 400, 'g', 'mieso', 'Kurki lub pieczarki', 250, 'g', 'Śmietanka 30%', 200, 'ml'],
+      ['Polędwiczki w sosie musztardowo-miodowym', '🍯', 25, 2, ['miesne', 'szybkie'], 'Polędwiczka wieprzowa', 400, 'g', 'mieso', 'Musztarda francuska', 2, 'łyżki', 'Śmietanka 30%', 150, 'ml'],
+      ['Kurczak słodko-kwaśny z ananasem i ryżem', '🍍', 25, 2, ['miesne', 'szybkie', 'jednogarnkowe'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Ananas w puszce', 1, 'puszka', 'Ryż basmati', 160, 'g'],
+      ['Butter chicken z ryżem jaśminowym', '🍛', 30, 4, ['miesne', 'jednogarnkowe'], 'Pierś z kurczaka', 500, 'g', 'mieso', 'Passata pomidorowa', 400, 'ml', 'Masło', 50, 'g'],
+      ['Tikka masala z kurczakiem i kolendrą', '🍛', 30, 4, ['miesne', 'jednogarnkowe'], 'Pierś z kurczaka', 500, 'g', 'mieso', 'Jogurt grecki', 150, 'g', 'Passata pomidorowa', 400, 'ml'],
+      ['Strogonow drobiowy z pieczarkami i ogórkiem', '🥘', 25, 4, ['miesne', 'jednogarnkowe', 'szybkie'], 'Pierś z kurczaka', 500, 'g', 'mieso', 'Pieczarki', 250, 'g', 'Ogórki kiszone', 3, 'szt.'],
+      ['Zapiekanka makaronowa z szynką, brokułem i serem', '🧀', 35, 4, ['makarony', 'miesne', 'jednogarnkowe'], 'Makaron penne', 300, 'g', 'sypkie', 'Brokuł', 1, 'szt.', 'Ser żółty tarty', 150, 'g'],
+      ['Lasagne bolognese z sosem beszamelowym', '🍝', 50, 4, ['makarony', 'miesne'], 'Płaty lasagne', 250, 'g', 'sypkie', 'Mięso mielone wołowe', 500, 'g', 'Passata pomidorowa', 500, 'ml'],
+      ['Cannelloni nadziewane ricottą i szpinakiem', '🍝', 40, 4, ['makarony', 'vege'], 'Makaron cannelloni', 250, 'g', 'sypkie', 'Ser ricotta', 250, 'g', 'Szpinak świeży', 200, 'g'],
+      ['Tagliatelle z kurkami i parmezanem', '🍝', 20, 2, ['makarony', 'vege', 'szybkie'], 'Makaron tagliatelle', 220, 'g', 'sypkie', 'Pieczarki lub kurki', 250, 'g', 'Śmietanka 30%', 150, 'ml'],
+      ['Spaghetti aglio e olio z chili i pietruszką', '🍝', 15, 2, ['makarony', 'vege', 'szybkie'], 'Makaron spaghetti', 220, 'g', 'sypkie', 'Czosnek', 4, 'ząbki', 'Natka pietruszki', 1, 'pęczek'],
+      ['Penne all’arrabbiata z pikantnym sosem pomidorowym', '🌶️', 20, 2, ['makarony', 'vege', 'szybkie'], 'Makaron penne', 220, 'g', 'sypkie', 'Passata pomidorowa', 400, 'ml', 'Parmezan', 40, 'g'],
+      ['Mac & Cheese z chrupiącą kruszonką', '🧀', 25, 4, ['makarony', 'vege', 'szybkie'], 'Makaron kolanka', 300, 'g', 'sypkie', 'Ser cheddar tarty', 200, 'g', 'Mleko', 300, 'ml'],
+      ['Makaron z cukinią, cytryną i ricottą', '🍋', 18, 2, ['makarony', 'vege', 'szybkie'], 'Makaron spaghetti', 220, 'g', 'sypkie', 'Cukinia', 1, 'szt.', 'Ser ricotta', 150, 'g'],
+      ['Makaron z klopsikami w sosie pomidorowym', '🍝', 30, 4, ['makarony', 'miesne'], 'Makaron spaghetti', 350, 'g', 'sypkie', 'Mięso mielone wieprzowe', 400, 'g', 'Passata pomidorowa', 500, 'ml'],
+      ['Makaron udon z wołowiną i warzywami stir-fry', '🍜', 20, 2, ['makarony', 'miesne', 'szybkie'], 'Makaron udon', 300, 'g', 'sypkie', 'Wołowina polędwica lub rostbef', 250, 'g', 'Papryka czerwona', 1, 'szt.'],
+      ['Risotto ze szparagami i zielonym groszkiem', '🍚', 28, 2, ['vege', 'jednogarnkowe'], 'Ryż arborio', 200, 'g', 'sypkie', 'Szparagi zielone', 250, 'g', 'Parmezan', 50, 'g'],
+      ['Risotto pomidorowe z mozzarellą i bazylią', '🍅', 28, 2, ['vege', 'jednogarnkowe'], 'Ryż arborio', 200, 'g', 'sypkie', 'Passata pomidorowa', 300, 'ml', 'Mozzarella kulka', 1, 'szt.'],
+      ['Risotto z kurczakiem i suszonymi pomidorami', '🍚', 30, 2, ['miesne', 'jednogarnkowe'], 'Ryż arborio', 200, 'g', 'sypkie', 'Pierś z kurczaka', 250, 'g', 'Suszone pomidory', 60, 'g'],
+      ['Kasza pęczak z pieczarkami i natką (pęczotto)', '🍄', 30, 2, ['vege', 'jednogarnkowe'], 'Kasza pęczak', 180, 'g', 'sypkie', 'Pieczarki', 250, 'g', 'Parmezan', 40, 'g'],
+      ['Kasza gryczana z warzywami i fetą', '🥗', 20, 2, ['vege', 'jednogarnkowe', 'szybkie'], 'Kasza gryczana', 160, 'g', 'sypkie', 'Ser feta', 120, 'g', 'Cukinia', 1, 'szt.'],
+      ['Paella z kurczakiem, krewetkami i groszkiem', '🥘', 35, 4, ['miesne', 'jednogarnkowe'], 'Ryż do paelli lub parboiled', 250, 'g', 'sypkie', 'Pierś z kurczaka', 300, 'g', 'Krewetki koktajlowe', 200, 'g'],
+      ['Smażony ryż po chińsku z jajkiem i warzywami', '🍚', 18, 2, ['vege', 'jednogarnkowe', 'szybkie'], 'Ryż ugotowany', 300, 'g', 'sypkie', 'Jajka', 2, 'szt.', 'Groszek z marchewką', 150, 'g'],
+      ['Burrito bowl z ryżem, czarną fasolą i awokado', '🥑', 25, 2, ['vege', 'jednogarnkowe', 'szybkie'], 'Czarna fasola w puszce', 1, 'puszka', 'sypkie', 'Ryż basmati', 160, 'g', 'Awokado', 1, 'szt.'],
+      ['Buddha bowl z pieczonym batatem i hummusem', '🍠', 35, 2, ['vege'], 'Batat', 400, 'g', 'warzywa', 'Hummus klasyczny', 150, 'g', 'Ciecierzyca w puszce', 1, 'puszka'],
+      ['Dhal z czerwonej soczewicy ze szpinakiem', '🍛', 25, 4, ['vege', 'jednogarnkowe', 'szybkie'], 'Czerwona soczewica', 250, 'g', 'sypkie', 'Mleczko kokosowe', 400, 'ml', 'Szpinak świeży', 100, 'g'],
+      ['Shakshuka zielona ze szpinakiem i awokado', '🍳', 15, 2, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Jajka', 4, 'szt.', 'nabial', 'Szpinak świeży', 150, 'g', 'Ser feta', 80, 'g'],
+      ['Jajka po turecku (Çılbır) z jogurtem czosnkowym', '🥚', 15, 2, ['sniadanie', 'vege', 'szybkie'], 'Jajka', 4, 'szt.', 'nabial', 'Jogurt grecki', 250, 'g', 'Masło', 30, 'g'],
+      ['Jajka w koszulkach na grzance z łososiem', '🥯', 15, 2, ['sniadanie', 'miesne', 'szybkie'], 'Jajka', 4, 'szt.', 'nabial', 'Łosoś wędzony', 100, 'g', 'Bułki lub bajgle', 2, 'szt.'],
+      ['Omlet cesarski (Kaiserschmarrn) z rodzynkami', '🥞', 20, 2, ['sniadanie', 'kolacja', 'vege'], 'Jajka', 3, 'szt.', 'nabial', 'Mąka pszenna', 120, 'g', 'Mleko', 150, 'ml'],
+      ['Omlet biszkoptowy na słodko z borówkami', '🫐', 15, 2, ['sniadanie', 'vege', 'szybkie'], 'Jajka', 3, 'szt.', 'nabial', 'Borówki amerykańskie', 120, 'g', 'Jogurt grecki', 100, 'g'],
+      ['Gofry chrupiące z bitą śmietaną i owocami', '🧇', 20, 4, ['sniadanie', 'kolacja', 'vege'], 'Mąka pszenna', 250, 'g', 'sypkie', 'Mleko', 250, 'ml', 'Jajka', 2, 'szt.'],
+      ['Pancakes amerykańskie z syropem klonowym', '🥞', 20, 2, ['sniadanie', 'vege', 'szybkie'], 'Mąka pszenna', 160, 'g', 'sypkie', 'Maślanka', 200, 'ml', 'Jajko', 1, 'szt.'],
+      ['Naleśniki czekoladowe z twarożkiem waniliowym', '🍫', 25, 2, ['sniadanie', 'kolacja', 'vege'], 'Twaróg półtłusty', 250, 'g', 'nabial', 'Mąka pszenna', 140, 'g', 'Kakao', 2, 'łyżki'],
+      ['Naleśniki wytrawne ze szpinakiem i fetą', '🥬', 25, 2, ['kolacja', 'vege'], 'Szpinak świeży', 150, 'g', 'warzywa', 'Ser feta', 120, 'g', 'Mąka pszenna', 150, 'g'],
+      ['Naleśniki po meksykańsku z kurczakiem i fasolą', '🌯', 30, 4, ['kolacja', 'miesne'], 'Pierś z kurczaka', 300, 'g', 'mieso', 'Czerwona fasola w puszce', 1, 'puszka', 'Ser żółty tarty', 100, 'g'],
+      ['Owsianka szarlotkowa z prażonym jabłkiem', '🍎', 12, 2, ['sniadanie', 'vege', 'szybkie'], 'Płatki owsiane', 100, 'g', 'sypkie', 'Jabłka', 2, 'szt.', 'Mleko', 350, 'ml'],
+      ['Jaglanka kokosowa z mango i malinami', '🥭', 18, 2, ['sniadanie', 'vege', 'szybkie'], 'Kasza jaglana', 100, 'g', 'sypkie', 'Mleczko kokosowe', 200, 'ml', 'Mango lub maliny', 150, 'g'],
+      ['Kasza manna na mleku z musem malinowym', '🥣', 10, 2, ['sniadanie', 'vege', 'szybkie'], 'Kasza manna', 80, 'g', 'sypkie', 'Mleko', 500, 'ml', 'Maliny', 120, 'g'],
+      ['Ryż na mleku z jabłkami i cynamonem', '🍚', 25, 2, ['sniadanie', 'kolacja', 'vege', 'klasyki'], 'Ryż biały', 150, 'g', 'sypkie', 'Mleko', 500, 'ml', 'Jabłka', 2, 'szt.'],
+      ['Granola domowa z patelni z jogurtem i owocami', '🥣', 15, 4, ['sniadanie', 'vege', 'szybkie'], 'Płatki owsiane', 200, 'g', 'sypkie', 'Orzechy włoskie lub migdały', 60, 'g', 'Jogurt grecki', 300, 'g'],
+      ['Koktajl proteinowy banan-masło orzechowe-kakao', '🥤', 5, 2, ['sniadanie', 'vege', 'szybkie'], 'Banan', 2, 'szt.', 'warzywa', 'Mleko', 400, 'ml', 'Masło orzechowe', 2, 'łyżki'],
+      ['Zielone smoothie ze szpinakiem, kiwi i bananem', '🥝', 5, 2, ['sniadanie', 'vege', 'szybkie'], 'Szpinak baby', 60, 'g', 'warzywa', 'Kiwi', 2, 'szt.', 'Banan', 1, 'szt.'],
+      ['Bułeczki śniadaniowe pszenne z miski', '🥖', 45, 6, ['sniadanie', 'kolacja', 'vege'], 'Mąka pszenna', 500, 'g', 'sypkie', 'Drożdże świeże', 25, 'g', 'Mleko', 250, 'ml'],
+      ['Chleb domowy z ziarnami słonecznika i dyni', '🍞', 60, 8, ['sniadanie', 'kolacja', 'vege'], 'Mąka pszenna chlebowa', 500, 'g', 'sypkie', 'Drożdże suche', 7, 'g', 'Pestki słonecznika i dyni', 80, 'g'],
+      ['Focaccia z rozmarynem, oliwkami i pomidorkami', '🫒', 45, 4, ['kolacja', 'vege'], 'Mąka pszenna', 400, 'g', 'sypkie', 'Oliwki czarne', 80, 'g', 'Pomidorki koktajlowe', 150, 'g'],
+      ['Pasta z awokado i jajka na twardo', '🥑', 12, 2, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Awokado', 1, 'szt.', 'warzywa', 'Jajka', 3, 'szt.', 'Pieczywo', 4, 'szt.'],
+      ['Pasta z makreli wędzonej z twarożkiem', '🐟', 10, 2, ['sniadanie', 'kolacja', 'miesne', 'szybkie'], 'Makrela wędzona', 150, 'g', 'mieso', 'Twaróg półtłusty', 150, 'g', 'Szczypiorek', 1, 'pęczek'],
+      ['Pasta z suszonych pomidorów i słonecznika', '🍅', 10, 4, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Suszone pomidory w oleju', 120, 'g', 'przyprawy', 'Pestki słonecznika', 100, 'g', 'Czosnek', 1, 'ząbek'],
+      ['Hummus klasyczny z ciecierzycy i tahini', '🧆', 10, 4, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Ciecierzyca w puszce', 1, 'puszka', 'sypkie', 'Pasta sezamowa tahini', 2, 'łyżki', 'Cytryna', 0.5, 'szt.'],
+      ['Hummus buraczany z fetą na grzankach', '🍠', 12, 4, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Ciecierzyca w puszce', 1, 'puszka', 'sypkie', 'Burak gotowany', 1, 'szt.', 'Ser feta', 60, 'g'],
+      ['Twarożek wiejski z rzodkiewką i szczypiorkiem', '🧀', 8, 2, ['sniadanie', 'kolacja', 'vege', 'szybkie'], 'Twaróg półtłusty', 250, 'g', 'nabial', 'Rzodkiewka', 1, 'pęczek', 'Śmietana 18%', 3, 'łyżki'],
+      ['Guacamole z pomidorami i kolendrą z nachosami', '🥑', 10, 2, ['kolacja', 'vege', 'szybkie'], 'Awokado', 2, 'szt.', 'warzywa', 'Pomidor', 1, 'szt.', 'Limonka', 0.5, 'szt.'],
+      ['Bruschetta z pomidorami, bazylią i mozzarellą', '🍅', 15, 2, ['kolacja', 'vege', 'szybkie'], 'Bagietka', 1, 'szt.', 'pieczywo', 'Pomidory', 2, 'szt.', 'Mozzarella kulka', 1, 'szt.'],
+      ['Grzanki z kozim serem, gruszką i orzechami', '🍐', 15, 2, ['kolacja', 'vege', 'szybkie'], 'Bagietka lub ciabatta', 1, 'szt.', 'pieczywo', 'Ser kozi rolada', 120, 'g', 'Gruszka', 1, 'szt.'],
+      ['Croque Monsieur — francuskie tosty zapiekane z beszamelem', '🥪', 20, 2, ['kolacja', 'sniadanie', 'miesne', 'szybkie'], 'Chleb tostowy', 4, 'szt.', 'pieczywo', 'Szynka', 100, 'g', 'Ser gruyère lub żółty', 120, 'g'],
+      ['Tarta francuska ze szpinakiem, fetą i suszonymi pomidorami', '🥧', 35, 4, ['kolacja', 'vege'], 'Ciasto francuskie', 1, 'opak.', 'pieczywo', 'Szpinak świeży', 150, 'g', 'Ser feta', 150, 'g'],
+      ['Tarta z ciasta francuskiego z łososiem i brokułem', '🥧', 35, 4, ['kolacja', 'miesne'], 'Ciasto francuskie', 1, 'opak.', 'pieczywo', 'Łosoś wędzony lub świeży', 200, 'g', 'Brokuł', 0.5, 'szt.'],
+      ['Domowa pizza na cienkim cieście z szynką i pieczarkami', '🍕', 40, 4, ['kolacja', 'miesne'], 'Mąka pszenna', 350, 'g', 'sypkie', 'Mozzarella tarty', 200, 'g', 'Passata pomidorowa', 200, 'ml'],
+      ['Pizzerinki z ciasta drożdżowego na kolację', '🍕', 35, 4, ['kolacja', 'vege'], 'Mąka pszenna', 350, 'g', 'sypkie', 'Ser żółty tarty', 150, 'g', 'Kukurydza konserwowa', 4, 'łyżki'],
+      ['Wrapy z łososiem wędzonym, serkiem i rukolą', '🌯', 10, 2, ['kolacja', 'sniadanie', 'miesne', 'szybkie'], 'Placki tortilla', 2, 'szt.', 'pieczywo', 'Łosoś wędzony', 120, 'g', 'Serek śmietankowy', 100, 'g'],
+      ['Sałatka z kurczakiem, awokado i mango', '🥗', 20, 2, ['kolacja', 'miesne', 'szybkie'], 'Pierś z kurczaka', 250, 'g', 'mieso', 'Awokado', 1, 'szt.', 'Mix sałat', 1, 'opak.'],
+      ['Sałatka nicejska z tuńczykiem, jajkiem i fasolką', '🥗', 20, 2, ['kolacja', 'miesne', 'szybkie'], 'Tuńczyk w puszce', 1, 'puszka', 'mieso', 'Jajka', 2, 'szt.', 'Fasolka szparagowa', 150, 'g'],
+      ['Sałatka caprese z burratą i pesto', '🍅', 10, 2, ['kolacja', 'vege', 'szybkie'], 'Burrata lub mozzarella', 200, 'g', 'nabial', 'Pomidory malinowe', 300, 'g', 'Pesto bazyliowe', 2, 'łyżki'],
+      ['Sałatka z pieczonym burakiem, kozim serem i rukolą', '🥗', 25, 2, ['kolacja', 'vege', 'szybkie'], 'Buraki gotowane', 300, 'g', 'warzywa', 'Ser kozi', 100, 'g', 'Rukola', 1, 'opak.'],
+      ['Sałatka makaronowa z szynką, serem i ogórkiem', '🥗', 20, 4, ['kolacja', 'makarony', 'miesne', 'szybkie'], 'Makaron kokardki', 200, 'g', 'sypkie', 'Szynka konserwowa', 150, 'g', 'Ser żółty', 120, 'g'],
+      ['Kotlety z kalafiora i sera żółtego z piekarnika', '🥦', 35, 2, ['vege'], 'Kalafior', 500, 'g', 'warzywa', 'Ser żółty tarty', 100, 'g', 'Jajka', 2, 'szt.'],
+      ['Kotlety z czerwonej soczewicy i marchewki', '🥕', 30, 2, ['vege'], 'Czerwona soczewica', 200, 'g', 'sypkie', 'Marchewka', 2, 'szt.', 'Jajko', 1, 'szt.'],
+      ['Falafele z ciecierzycy z sosem tahini', '🧆', 30, 4, ['vege'], 'Ciecierzyca w puszce', 2, 'puszki', 'sypkie', 'Natka pietruszki', 1, 'pęczek', 'Jogurt grecki', 150, 'g'],
+      ['Kotlety jajeczne ze szczypiorkiem i koperkiem', '🥚', 20, 2, ['vege', 'klasyki', 'szybkie'], 'Jajka', 6, 'szt.', 'nabial', 'Szczypiorek', 1, 'pęczek', 'Bułka tarta', 60, 'g'],
+      ['Pierś z kurczaka zapiekana z mozzarellą i pomidorami', '🍗', 30, 2, ['miesne', 'szybkie'], 'Pierś z kurczaka', 350, 'g', 'mieso', 'Mozzarella kulka', 1, 'szt.', 'Pomidor', 2, 'szt.']
+    ];
+
+    const GENERATED_STARTER_RECIPES = THERMOMIX_LIDLOMIX_SEEDS.map((row, idx) => {
+      const [
+        title,
+        emoji,
+        prepTime,
+        servings,
+        tags,
+        ing1Name,
+        ing1Amt,
+        ing1Unit,
+        ing1Cat,
+        ing2Name,
+        ing2Amt,
+        ing2Unit,
+        ing3Name,
+        ing3Amt,
+        ing3Unit
+      ] = row;
+
+      const isSoup = tags.includes('jednogarnkowe') && /krem|zupa|barszcz|krupnik|kapuśniak/i.test(title);
+      const isBreakfastOrCold = tags.includes('sniadanie') || /pasta|hummus|sałatka|smoothie|koktajl/i.test(title);
+
+      const steps = isSoup
+        ? [
+            `Przygotuj składniki: pokrój ${ing1Name.toLowerCase()} oraz warzywa bazowe (cebulę, czosnek).`,
+            `Podsmaż krótko na odrobinie masła lub oliwy (w Thermomix/Lidlomix: 3 min / 100°C / obr. 1), wlej ${ing2Name.toLowerCase()} i gotuj do miękkości ok. ${Math.max(10, prepTime - 8)} minut.`,
+            `Dopraw solą, pieprzem i ziołami; w razie potrzeby zblenduj na gładki krem i podawaj z dodatkiem (${ing3Name.toLowerCase()}).`
+          ]
+        : isBreakfastOrCold
+        ? [
+            `Przygotuj główne składniki: ${ing1Name.toLowerCase()}, ${ing2Name.toLowerCase()} oraz ${ing3Name.toLowerCase()}.`,
+            `Połącz składniki zgodnie z konsystencją dania (zmiksuj, wymieszaj lub podpiecz krótko na patelni).`,
+            `Dopraw do smaku i podawaj od razu po przygotowaniu.`
+          ]
+        : [
+            `Przygotuj wszystkie składniki: ${ing1Name.toLowerCase()}, ${ing2Name.toLowerCase()} oraz ${ing3Name.toLowerCase()}.`,
+            `Podduś lub podsmaż bazę dania, dodaj przyprawy i gotuj pod przykryciem przez ok. ${Math.max(10, prepTime - 10)} minut.`,
+            `Połącz z pozostałymi składnikami, dopraw do smaku i podawaj na ciepło.`
+          ];
+
+      return {
+        id: `starter-tm-${idx + 1}`,
+        title,
+        emoji,
+        prepTime,
+        servings,
+        tags,
+        source: idx % 2 === 0 ? 'Thermomix / Cookidoo' : 'Lidlomix / Kuchnia',
+        note: 'Sprawdzony przepis z szybką listą zakupów i przelicznikiem porcji.',
+        ingredients: [
+          { name: ing1Name, amount: ing1Amt, unit: ing1Unit, category: ing1Cat, isPantry: false },
+          { name: ing2Name, amount: ing2Amt, unit: ing2Unit, category: guessShoppingCategory(ing2Name), isPantry: false },
+          { name: ing3Name, amount: ing3Amt, unit: ing3Unit, category: guessShoppingCategory(ing3Name), isPantry: false },
+          { name: 'Cebula lub czosnek', amount: 1, unit: 'szt.', category: 'warzywa', isPantry: false },
+          { name: 'Sól, pieprz i ulubione zioła', amount: 1, unit: 'szczypta', category: 'przyprawy', isPantry: true }
+        ],
+        steps
+      };
+    });
+
+    const STARTER_RECIPES = [...BASE_STARTER_RECIPES, ...GENERATED_STARTER_RECIPES];
 
     // ============================================================================
     // FUNKCJE POMOCNICZE
@@ -1184,12 +559,12 @@
     function guessShoppingCategory(name) {
       const n = (name || '').toLowerCase().trim();
       if (/(papier|mydło|mydlo|płyn|plyn|kapsułk|kapsulk|proszek|worki|ręcznik|recznik|pasta do zębów|szampon|gąbk|gabk|ścierecz|scierecz|tabletki do zmyw|odświeżacz|wybielacz|domestos|cif|ludwik|do szyb)/.test(n)) return 'chemia';
-      if (/(sól|sol|pieprz|oliw|olej|sos|passat|ketchup|musztard|majonez|przypraw|curry|oregano|cukier|mleczko kokos|suszon|granulowan|mielon[aey]|wędzon[aey]|słodk[aey]\s+papryk|ostr[aey]\s+papryk|papryka\s+(słodka|slodka|ostra|wędzona|wedzona)|cynamon|kurkum|imbir\s+mielon|kumin|kminek|majeranek|tymianek|rozmaryn|bazylia\s+suszon|liść laurowy|lisc laurowy|ziele angielskie|proszek do pieczenia|soda oczyszczona|wanili|ocet|pesto|bulion|kostk[ai]\s+rosołow|zakwas|chrzan|koncentrat|w puszce|w słoiku)/.test(n)) return 'przyprawy';
-      if (/(makaron|ryż|ryz|kasza|mąka|maka|płatki|platki|ciecierzyc|fasol|gnocchi|soczewic|bułka tarta|bulka tarta|sezam|pestki|orzech|migdał|rodzynk|drożdż|drozdz|kukurydza konserw|groszek konserw)/.test(n)) return 'sypkie';
-      if (/(mleko|ser\b|serek|parmezan|mozzarell|feta|cheddar|jogurt|śmietan|smietan|masło|maslo|jajk|twaróg|twarog|kefir|maślank|maslank)/.test(n)) return 'nabial';
-      if (/(kurczak|indyk|mięso|mieso|schab|wołow|wolow|wieprz|szynk|boczek|kiełbas|kielbas|łosoś|losos|tuńczyk|tunczyk|ryba|krewet|filet|pierś|piers|karkówk|karkowk|polędwic|poledwic)/.test(n)) return 'mieso';
-      if (/(chleb|bułk|bulk|tortill|bagiet|pieczyw|tost|chałk|chalk|kajzerk|rogale)/.test(n)) return 'pieczywo';
-      if (/(pomidor|ogórek|ogorek|cebula|czosnek|szpinak|sałat|salat|marchew|ziemniak|cukini|papryk|jabłk|jablk|banan|cytryn|koperek|bazyl|brokuł|brokul|pieczark|awokado|owoc|warzyw|rzodkiew|szczypior|natka|pietruszk|seler|por\b|dynia|borówk|borowk|malin|truskawk|gruszk|pomarańcz|pomarancz|ziemniaki|włoszczyzn|wloszczyzn)/.test(n)) return 'warzywa';
+      if (/(sól|sol|pieprz|oliw|olej|sos|passat|ketchup|musztard|majonez|przypraw|curry|oregano|cukier|mleczko kokos|suszon|granulowan|mielon[aey]|wędzon[aey]|słodk[aey]\s+papryk|ostr[aey]\s+papryk|papryka\s+(słodka|slodka|ostra|wędzona|wedzona)|cynamon|kurkum|imbir\s+mielon|kumin|kminek|majeranek|tymianek|rozmaryn|bazylia\s+suszon|liść laurowy|lisc laurowy|ziele angielskie|proszek do pieczenia|soda oczyszczona|wanili|ocet|pesto|bulion|kostk[ai]\s+rosołow|zakwas|chrzan|koncentrat|w puszce|w słoiku|tahini|kakao)/.test(n)) return 'przyprawy';
+      if (/(makaron|ryż|ryz|kasza|mąka|maka|płatki|platki|ciecierzyc|fasol|gnocchi|soczewic|bułka tarta|bulka tarta|sezam|pestki|orzech|migdał|rodzynk|drożdż|drozdz|kukurydza konserw|groszek konserw|lasagne|cannelloni|udon|uszka)/.test(n)) return 'sypkie';
+      if (/(mleko|ser\b|serek|parmezan|mozzarell|feta|cheddar|jogurt|śmietan|smietan|masło|maslo|jajk|twaróg|twarog|kefir|maślank|maslank|ricotta|mascarpone|burrata)/.test(n)) return 'nabial';
+      if (/(kurczak|indyk|mięso|mieso|schab|wołow|wolow|wieprz|szynk|boczek|kiełbas|kielbas|łosoś|losos|tuńczyk|tunczyk|ryba|krewet|filet|pierś|piers|karkówk|karkowk|polędwic|poledwic|dorsz|makrela|żeberk|zeberk|łopatka|lopatka)/.test(n)) return 'mieso';
+      if (/(chleb|bułk|bulk|tortill|bagiet|pieczyw|tost|chałk|chalk|kajzerk|rogale|ciabatta|ciasto francuskie)/.test(n)) return 'pieczywo';
+      if (/(pomidor|ogórek|ogorek|cebula|czosnek|szpinak|sałat|salat|marchew|ziemniak|cukini|papryk|jabłk|jablk|banan|cytryn|koperek|bazyl|brokuł|brokul|pieczark|awokado|owoc|warzyw|rzodkiew|szczypior|natka|pietruszk|seler|por\b|dynia|borówk|borowk|malin|truskawk|gruszk|pomarańcz|pomarancz|włoszczyzn|wloszczyzn|szparag|kalafior|groszek|burak|batat|mango|kiwi|limonk|śliwk|sliwk|rukola|kapusta)/.test(n)) return 'warzywa';
       return 'inne';
     }
 
@@ -1335,7 +710,7 @@
     }
 
     // ============================================================================
-    // INICJALIZACJA KONFIGURACJI (obsługa magicznego linku #setup= i iOS PWA!)
+    // INICJALIZACJA KONFIGURACJI (automatyczne połączenie z wbudowaną chmurą!)
     // ============================================================================
     function bootstrapInitialSettings() {
       try {
@@ -1364,7 +739,12 @@
       let fbConfig = DEFAULT_FIREBASE_CONFIG;
       try {
         const saved = localStorage.getItem('naszdom_fb_config');
-        if (saved) fbConfig = JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.apiKey && parsed.projectId) {
+            fbConfig = parsed;
+          }
+        }
       } catch (_) {}
 
       return {
@@ -1401,6 +781,32 @@
       const [syncStatus, setSyncStatus] = useState(fbConfig ? 'connecting' : 'local');
       const [syncError, setSyncError] = useState('');
 
+      // Powiadomienia startowe i zmiany od partnera (śledzenie ostatnich aktywności)
+      const [startupNotifications, setStartupNotifications] = useState([]);
+      const [dismissedNotifIds, setDismissedNotifIds] = useState({});
+      const lastSeenTimestampRef = useRef(
+        Number(localStorage.getItem(`naszdom_last_seen_${cleanHouseId}_${INITIAL_BOOT.profile}`)) || 0
+      );
+      const initialSnapshotDoneRef = useRef({ shopping: false, chores: false, recipes: false });
+      const activeProfileRef = useRef(activeProfile);
+      useEffect(() => {
+        activeProfileRef.current = activeProfile;
+        lastSeenTimestampRef.current =
+          Number(localStorage.getItem(`naszdom_last_seen_${cleanHouseId}_${activeProfile}`)) || 0;
+      }, [activeProfile, cleanHouseId]);
+
+      const pushStartupNotification = (notif) => {
+        setStartupNotifications((prev) => {
+          if (prev.some((n) => n.id === notif.id)) return prev;
+          return [notif, ...prev].slice(0, 6);
+        });
+      };
+
+      const dismissNotification = (id) => {
+        setDismissedNotifIds((prev) => ({ ...prev, [id]: true }));
+        setStartupNotifications((prev) => prev.filter((n) => n.id !== id));
+      };
+
       // Toast
       const [toast, setToast] = useState(null);
       const toastTimer = useRef(null);
@@ -1413,6 +819,8 @@
       const defaultHousehold = {
         user1Name: 'Kuba',
         user2Name: 'Ania',
+        user1Points: 0,
+        user2Points: 0,
         nudge: null,
         mealPlan: {},
         starterVotes: {},
@@ -1604,6 +1012,46 @@
                 .map((d) => ({ id: d.id, ...d.data() }))
                 .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
               setShoppingItems(items);
+
+              const me = activeProfileRef.current;
+              const partnerName = me === 'user1' ? householdRef.current.user2Name : householdRef.current.user1Name;
+              const lastSeen = lastSeenTimestampRef.current;
+
+              // Powiadomienie na starcie lub na żywo, gdy druga osoba dodała coś do listy zakupów
+              if (!initialSnapshotDoneRef.current.shopping) {
+                initialSnapshotDoneRef.current.shopping = true;
+                const newByPartner = items.filter(
+                  (it) => !it.checked && it.addedBy && it.addedBy !== me && (it.createdAt || 0) > lastSeen
+                );
+                if (newByPartner.length > 0) {
+                  const namesPreview = newByPartner.slice(0, 3).map((i) => i.name).join(', ');
+                  const extra = newByPartner.length > 3 ? ` (+${newByPartner.length - 3})` : '';
+                  pushStartupNotification({
+                    id: `shop-start-${newByPartner[0].id}`,
+                    icon: '🛒',
+                    color: 'indigo',
+                    title: `${partnerName} dodał(a) zakupy (${newByPartner.length}):`,
+                    body: `${namesPreview}${extra}`,
+                    tab: 'shopping'
+                  });
+                }
+              } else {
+                snap.docChanges().forEach((change) => {
+                  if (change.type === 'added') {
+                    const data = change.doc.data();
+                    if (data.addedBy && data.addedBy !== me && (data.createdAt || 0) > Date.now() - 60000) {
+                      pushStartupNotification({
+                        id: `shop-live-${change.doc.id}`,
+                        icon: '🛒',
+                        color: 'indigo',
+                        title: `${partnerName} dopisał(a) do zakupów:`,
+                        body: `${data.name} (${formatAmount(data.amount)} ${data.unit || 'szt.'})`,
+                        tab: 'shopping'
+                      });
+                    }
+                  }
+                });
+              }
             },
             (err) => console.warn('Błąd synchronizacji zakupów:', err)
           );
@@ -1639,6 +1087,63 @@
                 .filter((item) => !NORMALIZED_LEGACY_CHORES.has(normalizeTitle(item.title)))
                 .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
               setChores(items);
+
+              const me = activeProfileRef.current;
+              const partnerName = me === 'user1' ? householdRef.current.user2Name : householdRef.current.user1Name;
+              const lastSeen = lastSeenTimestampRef.current;
+
+              if (!initialSnapshotDoneRef.current.chores) {
+                initialSnapshotDoneRef.current.chores = true;
+                const addedByPartner = items.filter(
+                  (c) => c.addedBy && c.addedBy !== me && (c.createdAt || 0) > lastSeen
+                );
+                if (addedByPartner.length > 0) {
+                  const preview = addedByPartner.slice(0, 2).map((c) => c.title).join(', ');
+                  const extra = addedByPartner.length > 2 ? ` (+${addedByPartner.length - 2})` : '';
+                  pushStartupNotification({
+                    id: `chore-partner-${addedByPartner[0].id}`,
+                    icon: '📌',
+                    color: 'violet',
+                    title: `${partnerName} dodał(a) nowe zadanie:`,
+                    body: `${preview}${extra}`,
+                    tab: 'chores'
+                  });
+                }
+                const dueItems = items.filter(isChoreDue);
+                if (dueItems.length > 0) {
+                  const duePreview = dueItems.slice(0, 2).map((c) => c.title).join(', ');
+                  const extra = dueItems.length > 2 ? ` (+${dueItems.length - 2} więcej)` : '';
+                  pushStartupNotification({
+                    id: 'chores-due-startup',
+                    icon: '✅',
+                    color: 'emerald',
+                    title: `Zadania do wykonania (${dueItems.length}):`,
+                    body: `${duePreview}${extra}`,
+                    tab: 'chores'
+                  });
+                }
+              } else {
+                snap.docChanges().forEach((change) => {
+                  if (change.type === 'added') {
+                    const data = change.doc.data();
+                    if (
+                      !NORMALIZED_LEGACY_CHORES.has(normalizeTitle(data.title)) &&
+                      data.addedBy &&
+                      data.addedBy !== me &&
+                      (data.createdAt || 0) > Date.now() - 60000
+                    ) {
+                      pushStartupNotification({
+                        id: `chore-live-${change.doc.id}`,
+                        icon: '📌',
+                        color: 'violet',
+                        title: `${partnerName} dodał(a) zadanie:`,
+                        body: `${data.title} (+${data.points || 10} pkt)`,
+                        tab: 'chores'
+                      });
+                    }
+                  }
+                });
+              }
             },
             (err) => console.warn('Błąd synchronizacji obowiązków:', err)
           );
@@ -1656,7 +1161,27 @@
             (err) => console.warn('Błąd synchronizacji przepisów:', err)
           );
 
+        // Zapisujemy czas ostatniej wizyty po 4 sekundach od otwarcia aplikacji, aby następnym razem pokazać tylko nowe rzeczy
+        const markSeenTimer = setTimeout(() => {
+          try {
+            localStorage.setItem(`naszdom_last_seen_${cleanHouseId}_${activeProfileRef.current}`, String(Date.now()));
+          } catch (_) {}
+        }, 4000);
+
+        // Automatyczna synchronizacja i sprawdzanie aktualizacji przy powrocie do aplikacji na iPhonie
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            try {
+              localStorage.setItem(`naszdom_last_seen_${cleanHouseId}_${activeProfileRef.current}`, String(Date.now()));
+            } catch (_) {}
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
+          clearTimeout(markSeenTimer);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          initialSnapshotDoneRef.current = { shopping: false, chores: false, recipes: false };
           unsubHouse();
           unsubShopping();
           unsubFridge();
@@ -1904,11 +1429,13 @@
       };
 
       // ==========================================================================
-      // OPERACJE: OBOWIĄZKI (BEZ PUNKTACJI + POPRAWIONE USUWANIE I EDYCJA)
+      // OPERACJE: OBOWIĄZKI (Z SYSTEMEM PUNKTÓW + USUWANIE I EDYCJA)
       // ==========================================================================
       const handleAddChore = async (choreData) => {
         const entry = {
           ...choreData,
+          points: Math.max(1, parseInt(choreData.points, 10) || 10),
+          addedBy: activeProfile,
           houseCode: cleanHouseId,
           lastDoneAt: null,
           lastDoneBy: null,
@@ -1920,36 +1447,57 @@
           setChores((prev) => [...prev, { id: `ch-${Date.now()}`, ...entry }]);
         }
         setShowAddChoreModal(false);
-        showToast('Dodano nowy obowiązek ✅');
+        showToast(`Dodano obowiązek (+${entry.points} pkt) ✅`);
       };
 
       const completeChore = async (chore) => {
         const now = Date.now();
+        const pts = Math.max(1, parseInt(chore.points, 10) || 10);
+        const ptsField = activeProfile === 'user1' ? 'user1Points' : 'user2Points';
+        const nextTotal = (Number(householdRef.current[ptsField]) || 0) + pts;
+
         if (dbRef.current && authUser && !String(chore.id).startsWith('ch-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: now,
-            lastDoneBy: activeProfile
+            lastDoneBy: activeProfile,
+            lastAwardedPoints: pts
           });
         } else {
           setChores((prev) =>
-            prev.map((c) => (c.id === chore.id ? { ...c, lastDoneAt: now, lastDoneBy: activeProfile } : c))
+            prev.map((c) =>
+              c.id === chore.id
+                ? { ...c, lastDoneAt: now, lastDoneBy: activeProfile, lastAwardedPoints: pts }
+                : c
+            )
           );
         }
-        showToast(`Odznaczono: ${chore.title} ✅`);
+        await updateHouseholdField({ [ptsField]: nextTotal });
+        showToast(`+${pts} pkt dla: ${activeUserName}! 🏆`);
       };
 
       const undoChore = async (chore) => {
+        const awarded = Number(chore.lastAwardedPoints ?? chore.points) || 10;
+        const doneBy = chore.lastDoneBy;
+        if (doneBy === 'user1' || doneBy === 'user2') {
+          const ptsField = doneBy === 'user1' ? 'user1Points' : 'user2Points';
+          const nextTotal = Math.max(0, (Number(householdRef.current[ptsField]) || 0) - awarded);
+          await updateHouseholdField({ [ptsField]: nextTotal });
+        }
+
         if (dbRef.current && authUser && !String(chore.id).startsWith('ch-')) {
           await dbRef.current.doc(`${colPath('chores')}/${chore.id}`).update({
             lastDoneAt: null,
-            lastDoneBy: null
+            lastDoneBy: null,
+            lastAwardedPoints: null
           });
         } else {
           setChores((prev) =>
-            prev.map((c) => (c.id === chore.id ? { ...c, lastDoneAt: null, lastDoneBy: null } : c))
+            prev.map((c) =>
+              c.id === chore.id ? { ...c, lastDoneAt: null, lastDoneBy: null, lastAwardedPoints: null } : c
+            )
           );
         }
-        showToast('Przywrócono na listę do zrobienia');
+        showToast('Cofnięto wykonanie i odjęto punkty');
       };
 
       const deleteChore = async (chore) => {
@@ -1970,7 +1518,8 @@
       const editChore = async (choreId, patch) => {
         const cleanPatch = {
           title: (patch.title || '').trim(),
-          frequency: patch.frequency || 'co_tydzien'
+          frequency: patch.frequency || 'co_tydzien',
+          points: Math.max(1, parseInt(patch.points, 10) || 10)
         };
         if (!cleanPatch.title) return;
         setChores((prev) => prev.map((c) => (c.id === choreId ? { ...c, ...cleanPatch } : c)));
@@ -1983,6 +1532,11 @@
           console.warn('Błąd edycji obowiązku:', err);
           showToast('Nie udało się zapisać zmian', 'error');
         }
+      };
+
+      const resetChorePoints = async () => {
+        await updateHouseholdField({ user1Points: 0, user2Points: 0 });
+        showToast('Wyzerowano tablicę punktów 🏆');
       };
 
       const sendNudge = async (chore) => {
@@ -2527,6 +2081,231 @@
               </div>
             )}
 
+            {/* POWIADOMIENIA STARTOWE I NA ŻYWO (ZADANIA DO WYKONANIA / ZMIANY OD DRUGIEJ OSOBY) */}
+            {startupNotifications.filter((n) => !dismissedNotifIds[n.id]).length > 0 && (
+              <div className="space-y-2">
+                {startupNotifications
+                  .filter((n) => !dismissedNotifIds[n.id])
+                  .map((notif) => {
+                    const palette =
+                      notif.color === 'emerald'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+                        : notif.color === 'violet'
+                        ? 'bg-violet-50 border-violet-200 text-violet-950'
+                        : 'bg-indigo-50 border-indigo-200 text-indigo-950';
+                    return (
+                      <div
+                        key={notif.id}
+                        className={`rounded-3xl p-3.5 border shadow-sm flex items-center justify-between gap-3 ${palette}`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (notif.tab) setActiveTab(notif.tab);
+                            dismissNotification(notif.id);
+                          }}
+                          className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                        >
+                          <span className="text-xl shrink-0">{notif.icon}</span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold leading-snug">{notif.title}</p>
+                            <p className="text-xs opacity-85 truncate mt-0.5">{notif.body}</p>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => dismissNotification(notif.id)}
+                          className="p-1.5 rounded-xl bg-white/70 hover:bg-white text-slate-600 shrink-0"
+                          aria-label="Zamknij powiadomienie"
+                        >
+                          <Icon name="x" className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
+            {/* ==================================================================
+                ZAKŁADKA 2: OBOWIĄZKI DOMOWE (Z PUNKTAMI)
+               ================================================================== */}
+            {activeTab === 'chores' && (
+              <div className="space-y-3">
+                {/* Tablica punktów domowników */}
+                <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-slate-700">🏆 Punkty za obowiązki</span>
+                    {(Number(household.user1Points || 0) > 0 || Number(household.user2Points || 0) > 0) && (
+                      <button
+                        type="button"
+                        onClick={resetChorePoints}
+                        className="text-[11px] font-bold text-slate-400 hover:text-rose-500"
+                      >
+                        Resetuj punkty
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div
+                      className={`p-2.5 rounded-2xl border flex items-center justify-between ${
+                        activeProfile === 'user1' ? 'bg-indigo-50/70 border-indigo-200' : 'bg-slate-50 border-slate-200/70'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-slate-800 truncate">🙋‍♂️ {household.user1Name}</span>
+                      <span className="text-xs font-extrabold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 shrink-0">
+                        {Number(household.user1Points) || 0} pkt
+                      </span>
+                    </div>
+                    <div
+                      className={`p-2.5 rounded-2xl border flex items-center justify-between ${
+                        activeProfile === 'user2' ? 'bg-indigo-50/70 border-indigo-200' : 'bg-slate-50 border-slate-200/70'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-slate-800 truncate">🙋‍♀️ {household.user2Name}</span>
+                      <span className="text-xs font-extrabold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 shrink-0">
+                        {Number(household.user2Points) || 0} pkt
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pasek filtrów i dodawania zadania */}
+                <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 flex items-center justify-between gap-2">
+                  <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl">
+                    <button
+                      type="button"
+                      onClick={() => setChoresFilter('due')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        choresFilter === 'due' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+                      }`}
+                    >
+                      Do zrobienia ({chores.filter(isChoreDue).length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setChoresFilter('all')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        choresFilter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+                      }`}
+                    >
+                      Wszystkie ({chores.length})
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddChoreModal(true)}
+                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 shrink-0"
+                  >
+                    <Icon name="plus" className="w-4 h-4" />
+                    Dodaj
+                  </button>
+                </div>
+
+                {/* Lista obowiązków */}
+                {visibleChores.length === 0 ? (
+                  <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
+                    <p className="text-4xl mb-2">✨</p>
+                    <p className="text-sm font-bold text-slate-800">
+                      {chores.length === 0
+                        ? 'Brak zapisanych obowiązków'
+                        : 'Wszystko na dziś zrobione!'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Kliknij „+ Dodaj”, aby dodać własne zadania domowe z punktacją.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {visibleChores.map((chore) => {
+                      const due = isChoreDue(chore);
+                      const pts = Math.max(1, parseInt(chore.points, 10) || 10);
+                      const doneByName =
+                        chore.lastDoneBy === 'user1'
+                          ? household.user1Name
+                          : chore.lastDoneBy === 'user2'
+                          ? household.user2Name
+                          : null;
+
+                      return (
+                        <div
+                          key={chore.id}
+                          className={`bg-white rounded-3xl p-3.5 shadow-sm border transition-all flex items-center justify-between gap-2.5 ${
+                            due ? 'border-slate-200/70' : 'border-emerald-200/80 bg-emerald-50/30 opacity-80'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => (due ? completeChore(chore) : undoChore(chore))}
+                            className="flex items-start gap-3 flex-1 min-w-0 text-left"
+                          >
+                            <span
+                              className={`mt-0.5 w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                due
+                                  ? 'border-2 border-slate-300 bg-white'
+                                  : 'bg-emerald-500 text-white'
+                              }`}
+                            >
+                              {!due && <Icon name="check" className="w-4 h-4" />}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={`text-sm font-bold leading-snug ${
+                                  due ? 'text-slate-900' : 'line-through text-slate-500'
+                                }`}
+                              >
+                                {chore.title}
+                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg">
+                                  +{pts} pkt
+                                </span>
+                                <span className="text-[11px] text-slate-500">
+                                  {FREQUENCY_LABELS[chore.frequency] || 'Cykliczne'}
+                                </span>
+                                {!due && doneByName && (
+                                  <span className="text-[11px] font-semibold text-emerald-700">
+                                    • Zrobił(a): {doneByName}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            {due && (
+                              <button
+                                type="button"
+                                onClick={() => sendNudge(chore)}
+                                className="p-2 text-amber-500 hover:bg-amber-50 rounded-xl"
+                                title={`Przypomnij: ${partnerUserName}`}
+                              >
+                                <Icon name="bell" className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setEditingChore(chore)}
+                              className="px-2 py-1.5 text-[11px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl"
+                            >
+                              Edytuj
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteChore(chore)}
+                              className="p-2 text-slate-300 hover:text-rose-500 rounded-xl"
+                              aria-label="Usuń obowiązek"
+                            >
+                              <Icon name="trash" className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ==================================================================
                 ZAKŁADKA 1: ZAKUPY + LODÓWKA I SZAFKA
                ================================================================== */}
@@ -2711,7 +2490,6 @@
                     )}
                   </>
                 ) : (
-                  /* PODZAKŁADKA: ZAPASY (LODÓWKA + SZAFKA) */
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/70">
                       <button
@@ -2800,52 +2578,46 @@
                           {storageFilter === 'fridge' ? 'Lodówka jest pusta' : 'Szafka jest pusta'}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Kupione produkty spożywcze automatycznie wpadają tutaj po odhaczeniu zakupów.
+                          Kupione produkty automatycznie trafiają tutaj i są odliczane przy zakupach z przepisów.
                         </p>
                       </div>
                     ) : (
                       <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 divide-y divide-slate-100">
-                        {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).map((item) => {
-                          const step = item.unit === 'g' || item.unit === 'ml' ? 50 : 1;
-                          return (
-                            <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-bold text-slate-800 truncate">{item.name}</p>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    moveFridgeItemLocation(item, storageFilter === 'fridge' ? 'pantry' : 'fridge')
-                                  }
-                                  className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 mt-0.5"
-                                >
-                                  {storageFilter === 'fridge' ? 'Przenieś do Szafki 🗄️' : 'Przenieś do Lodówki ❄️'}
-                                </button>
-                              </div>
-
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => updateFridgeAmount(item, -step)}
-                                  className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
-                                  aria-label="Zmniejsz ilość"
-                                >
-                                  <Icon name="minus" className="w-3.5 h-3.5" />
-                                </button>
-                                <span className="text-xs font-extrabold text-slate-800 min-w-[3.6rem] text-center">
-                                  {formatAmount(item.amount)} {item.unit}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => updateFridgeAmount(item, step)}
-                                  className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
-                                  aria-label="Zwiększ ilość"
-                                >
-                                  <Icon name="plus" className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                        {(storageFilter === 'fridge' ? fridgeOnlyItems : pantryOnlyItems).map((item) => (
+                          <div key={item.id} className="py-2.5 flex items-center justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-bold text-slate-800 truncate">{item.name}</p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  moveFridgeItemLocation(item, storageFilter === 'fridge' ? 'pantry' : 'fridge')
+                                }
+                                className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600"
+                              >
+                                {storageFilter === 'fridge' ? 'Przenieś do szafki →' : '← Przenieś do lodówki'}
+                              </button>
                             </div>
-                          );
-                        })}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => updateFridgeAmount(item, -1)}
+                                className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"
+                              >
+                                <Icon name="minus" className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="text-xs font-extrabold text-slate-800 min-w-[3.5rem] text-center">
+                                {formatAmount(item.amount)} {item.unit}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateFridgeAmount(item, 1)}
+                                className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"
+                              >
+                                <Icon name="plus" className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2854,139 +2626,7 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 2: OBOWIĄZKI DOMOWE
-               ================================================================== */}
-            {activeTab === 'chores' && (
-              <div className="space-y-3">
-                <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 flex items-center justify-between gap-2">
-                  <div className="flex gap-1.5 bg-slate-100 p-1 rounded-2xl">
-                    <button
-                      type="button"
-                      onClick={() => setChoresFilter('due')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        choresFilter === 'due' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
-                      }`}
-                    >
-                      Do zrobienia ({chores.filter(isChoreDue).length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setChoresFilter('all')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        choresFilter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
-                      }`}
-                    >
-                      Wszystkie ({chores.length})
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAddChoreModal(true)}
-                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95"
-                  >
-                    <Icon name="plus" className="w-4 h-4" />
-                    Dodaj
-                  </button>
-                </div>
-
-                {visibleChores.length === 0 ? (
-                  <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
-                    <p className="text-4xl mb-2">✨</p>
-                    <p className="text-sm font-bold text-slate-800">
-                      {chores.length === 0 ? 'Brak obowiązków na liście' : 'Wszystko na dziś zrobione!'}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {chores.length === 0
-                        ? 'Kliknij „Dodaj” u góry, aby wpisać swoje zadania domowe.'
-                        : 'Przełącz na „Wszystkie”, żeby podejrzeć ukończone zadania.'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {visibleChores.map((chore) => {
-                      const due = isChoreDue(chore);
-                      const doneByName =
-                        chore.lastDoneBy === 'user1'
-                          ? household.user1Name
-                          : chore.lastDoneBy === 'user2'
-                          ? household.user2Name
-                          : null;
-
-                      return (
-                        <div
-                          key={chore.id}
-                          className={`bg-white rounded-3xl p-3.5 shadow-sm border flex items-center justify-between gap-2.5 transition-all ${
-                            due ? 'border-slate-200/80' : 'border-emerald-200/80 bg-emerald-50/30 opacity-80'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => (due ? completeChore(chore) : undoChore(chore))}
-                            className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                          >
-                            <span
-                              className={`w-6 h-6 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                due
-                                  ? 'border-2 border-slate-300 bg-white'
-                                  : 'bg-emerald-500 text-white'
-                              }`}
-                            >
-                              {!due && <Icon name="check" className="w-4 h-4" />}
-                            </span>
-                            <div className="min-w-0">
-                              <p
-                                className={`text-sm font-bold leading-snug truncate ${
-                                  due ? 'text-slate-900' : 'line-through text-slate-500'
-                                }`}
-                              >
-                                {chore.title}
-                              </p>
-                              <p className="text-[11px] text-slate-500 mt-0.5">
-                                {FREQUENCY_LABELS[chore.frequency] || 'Cykliczne'}
-                                {!due && doneByName ? ` • Zrobione (${doneByName})` : ''}
-                              </p>
-                            </div>
-                          </button>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            {due && (
-                              <button
-                                type="button"
-                                onClick={() => sendNudge(chore)}
-                                className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600"
-                                title={`Przypomnij: ${partnerUserName}`}
-                              >
-                                <Icon name="bell" className="w-4 h-4" />
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => setEditingChore(chore)}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold"
-                              aria-label="Edytuj obowiązek"
-                            >
-                              Edytuj
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteChore(chore)}
-                              className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50"
-                              aria-label="Usuń obowiązek"
-                            >
-                              <Icon name="trash" className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ==================================================================
-                ZAKŁADKA 3: PRZEPISY + PLANER TYGODNIA
+                ZAKŁADKA 2: OBOWIĄZKI DOMOWE (Z PUNKTAMI)
                ================================================================== */}
             {activeTab === 'recipes' && (
               <div className="space-y-4">
@@ -3777,11 +3417,12 @@
     }
 
     // ============================================================================
-    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU (BEZ PUNKTACJI)
+    // MODAL: DODAWANIE NOWEGO OBOWIĄZKU (Z PUNKTAMI)
     // ============================================================================
     function AddChoreModal({ onAdd, onClose }) {
       const [title, setTitle] = useState('');
       const [frequency, setFrequency] = useState('co_tydzien');
+      const [points, setPoints] = useState(10);
 
       const handleSubmit = (e) => {
         e.preventDefault();
@@ -3789,6 +3430,7 @@
         onAdd({
           title: title.trim(),
           frequency,
+          points,
           assignedTo: 'both'
         });
       };
@@ -3829,11 +3471,31 @@
                 </select>
               </div>
 
+              <div>
+                <label className="text-xs font-bold text-slate-600">Punkty za wykonanie</label>
+                <div className="mt-1 grid grid-cols-4 gap-1.5">
+                  {[5, 10, 20, 30].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setPoints(val)}
+                      className={`py-2 rounded-xl text-xs font-extrabold border transition-all ${
+                        points === val
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                          : 'bg-slate-50 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      +{val} pkt
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-bold shadow-sm"
               >
-                Dodaj obowiązek
+                Dodaj obowiązek (+{points} pkt)
               </button>
             </form>
           </div>
@@ -3842,18 +3504,20 @@
     }
 
     // ============================================================================
-    // MODAL: EDYCJA ISTNIEJĄCEGO OBOWIĄZKU
+    // MODAL: EDYCJA ISTNIEJĄCEGO OBOWIĄZKU (Z PUNKTAMI)
     // ============================================================================
     function EditChoreModal({ chore, onSave, onClose }) {
       const [title, setTitle] = useState(chore.title || '');
       const [frequency, setFrequency] = useState(chore.frequency || 'co_tydzien');
+      const [points, setPoints] = useState(Math.max(1, parseInt(chore.points, 10) || 10));
 
       const handleSubmit = (e) => {
         e.preventDefault();
         if (!title.trim()) return;
         onSave({
           title: title.trim(),
-          frequency
+          frequency,
+          points
         });
       };
 
@@ -3890,6 +3554,26 @@
                     <option key={k} value={k}>{label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-600">Punkty za wykonanie</label>
+                <div className="mt-1 grid grid-cols-4 gap-1.5">
+                  {[5, 10, 20, 30].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setPoints(val)}
+                      className={`py-2 rounded-xl text-xs font-extrabold border transition-all ${
+                        points === val
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                          : 'bg-slate-50 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      +{val} pkt
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button
