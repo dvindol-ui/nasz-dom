@@ -751,6 +751,97 @@
       return Number.isNaN(n) ? fallback : n;
     }
 
+    // Parsuje wklejoną listę zakupów na pojedyncze pozycje (nazwa, ilość, jednostka)
+    function parsePastedShoppingList(rawText) {
+      if (!rawText || !rawText.trim()) return [];
+      const chunks = rawText
+        .split(/[\r\n;]+/)
+        .flatMap((line) => {
+          // Jeśli w jednej linii jest przecinek (ale nie ułamek dziesiętny typu 1,5), dzielimy po przecinku
+          return line.split(/,(?!\d)/);
+        })
+        .map((s) =>
+          s
+            .trim()
+            .replace(/^[\-\*\•\–\—\+\[\]\(\)xX✓✔☑☐\d]+[\.\)\]]?\s*(?=[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])/, '')
+            .replace(/^[\-\*\•\–\—]+\s*/, '')
+            .trim()
+        )
+        .filter((s) => s.length >= 2);
+
+      const unitMap = {
+        szt: 'szt.',
+        'szt.': 'szt.',
+        sztuk: 'szt.',
+        sztuki: 'szt.',
+        g: 'g',
+        gr: 'g',
+        gram: 'g',
+        dkg: 'g',
+        kg: 'kg',
+        kilo: 'kg',
+        ml: 'ml',
+        l: 'l',
+        litr: 'l',
+        litry: 'l',
+        litrów: 'l',
+        opak: 'opak.',
+        'opak.': 'opak.',
+        opakowanie: 'opak.',
+        opakowania: 'opak.',
+        op: 'opak.',
+        pęczek: 'pęczek',
+        peczek: 'pęczek',
+        puszka: 'opak.',
+        puszki: 'opak.',
+        słoik: 'opak.',
+        sloik: 'opak.'
+      };
+
+      const parsed = [];
+      for (const itemStr of chunks) {
+        let name = itemStr;
+        let amount = 1;
+        let unit = 'szt.';
+
+        // Wzorzec 1: ilość + jednostka na końcu, np. "Mleko 2 l" lub "Ser żółty - 200g" lub "Jajka (10 szt.)"
+        const endMatch = itemStr.match(/^(.+?)[\s\-–:]*\(?(\d+(?:[.,]\d+)?)\s*(szt\.?|sztuk[ai]?|g|gr|gram|dkg|kg|kilo|ml|l|litr[yów]*|opak\.?|opakowani[ae]|op|pęczek|peczek|puszk[ai]|słoik|sloik)?\)?$/i);
+        // Wzorzec 2: ilość + jednostka na początku, np. "2 kg ziemniaków" lub "500g makaronu"
+        const startMatch = itemStr.match(/^(\d+(?:[.,]\d+)?)\s*(szt\.?|sztuk[ai]?|g|gr|gram|dkg|kg|kilo|ml|l|litr[yów]*|opak\.?|opakowani[ae]|op|pęczek|peczek|puszk[ai]|słoik|sloik)?\s+(.+)$/i);
+
+        if (startMatch && startMatch[3] && /[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,}/.test(startMatch[3])) {
+          amount = parseSafeNumber(startMatch[1], 1) || 1;
+          const rawUnit = (startMatch[2] || '').toLowerCase();
+          if (rawUnit === 'dkg') {
+            amount = amount * 10;
+            unit = 'g';
+          } else {
+            unit = unitMap[rawUnit] || 'szt.';
+          }
+          name = startMatch[3].trim();
+        } else if (endMatch && endMatch[1] && /[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]{2,}/.test(endMatch[1])) {
+          name = endMatch[1].replace(/[\-–:\(\)]+$/, '').trim();
+          amount = parseSafeNumber(endMatch[2], 1) || 1;
+          const rawUnit = (endMatch[3] || '').toLowerCase();
+          if (rawUnit === 'dkg') {
+            amount = amount * 10;
+            unit = 'g';
+          } else {
+            unit = unitMap[rawUnit] || 'szt.';
+          }
+        }
+
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+        parsed.push({
+          name,
+          amount,
+          unit,
+          category: guessShoppingCategory(name)
+        });
+      }
+      return parsed;
+    }
+
     function formatAmount(num) {
       const n = Math.round(parseSafeNumber(num, 1) * 10) / 10;
       return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
@@ -945,7 +1036,7 @@
       const [syncStatus, setSyncStatus] = useState(fbConfig ? 'connecting' : 'local');
       const [syncError, setSyncError] = useState('');
 
-      // Powiadomienia startowe i zmiany od partnera (śledzenie ostatnich aktywności)
+      // Powiadomienia startowe i zmiany od partnera
       const [startupNotifications, setStartupNotifications] = useState([]);
       const [dismissedNotifIds, setDismissedNotifIds] = useState({});
       const lastSeenTimestampRef = useRef(
@@ -1009,7 +1100,6 @@
       );
       const [customRecipes, setCustomRecipes] = useState(() => loadLocal('recipes', []));
 
-      // Bezpieczna obsługa zmiany kodu domu (wczytanie świeżego stanu zamiast mieszania dwóch domów)
       const prevHouseIdRef = useRef(cleanHouseId);
       useEffect(() => {
         if (prevHouseIdRef.current !== cleanHouseId) {
@@ -1025,7 +1115,6 @@
         }
       }, [cleanHouseId]);
 
-      // Scalone przepisy (startowe + własne + głosy Tinder)
       const recipes = useMemo(() => {
         const starterVotes = household.starterVotes || {};
         const mergedStarters = STARTER_RECIPES.map((r) => ({
@@ -1035,7 +1124,6 @@
         return [...customRecipes, ...mergedStarters];
       }, [customRecipes, household.starterVotes]);
 
-      // Zapis lokalny (tryb offline / przed podpięciem Firebase)
       useEffect(() => {
         if (fbConfig) return;
         try {
@@ -1047,7 +1135,6 @@
         } catch (_) {}
       }, [fbConfig, cleanHouseId, household, shoppingItems, fridgeItems, chores, customRecipes]);
 
-      // Zapis preferencji profilu i kodu domu + aktualizacja #setup dla instalacji iOS PWA
       useEffect(() => {
         localStorage.setItem('naszdom_profile', activeProfile);
         localStorage.setItem('naszdom_house_code', houseCode);
@@ -1070,6 +1157,10 @@
       const [newItemName, setNewItemName] = useState('');
       const [newItemAmount, setNewItemAmount] = useState('1');
       const [newItemUnit, setNewItemUnit] = useState('szt.');
+      const [showPasteShopping, setShowPasteShopping] = useState(false);
+      const [pastedShoppingText, setPastedShoppingText] = useState('');
+      const [isImportingShopping, setIsImportingShopping] = useState(false);
+
       const [storageFilter, setStorageFilter] = useState('fridge'); // fridge | pantry
       const [newFridgeName, setNewFridgeName] = useState('');
       const [newFridgeAmount, setNewFridgeAmount] = useState('1');
@@ -1181,7 +1272,6 @@
               const partnerName = me === 'user1' ? householdRef.current.user2Name : householdRef.current.user1Name;
               const lastSeen = lastSeenTimestampRef.current;
 
-              // Powiadomienie na starcie lub na żywo, gdy druga osoba dodała coś do listy zakupów
               if (!initialSnapshotDoneRef.current.shopping) {
                 initialSnapshotDoneRef.current.shopping = true;
                 const newByPartner = items.filter(
@@ -1325,14 +1415,12 @@
             (err) => console.warn('Błąd synchronizacji przepisów:', err)
           );
 
-        // Zapisujemy czas ostatniej wizyty po 4 sekundach od otwarcia aplikacji, aby następnym razem pokazać tylko nowe rzeczy
         const markSeenTimer = setTimeout(() => {
           try {
             localStorage.setItem(`naszdom_last_seen_${cleanHouseId}_${activeProfileRef.current}`, String(Date.now()));
           } catch (_) {}
         }, 4000);
 
-        // Automatyczna synchronizacja i sprawdzanie aktualizacji przy powrocie do aplikacji na iPhonie
         const handleVisibilityChange = () => {
           if (document.visibilityState === 'visible') {
             try {
@@ -1421,6 +1509,30 @@
         setNewItemName('');
         setNewItemAmount('1');
         setNewItemUnit('szt.');
+      };
+
+      const parsedPastedItems = useMemo(
+        () => parsePastedShoppingList(pastedShoppingText),
+        [pastedShoppingText]
+      );
+
+      const handleBulkAddShopping = async () => {
+        if (parsedPastedItems.length === 0) return;
+        setIsImportingShopping(true);
+        try {
+          for (const item of parsedPastedItems) {
+            await addShoppingItem(item);
+          }
+          const count = parsedPastedItems.length;
+          setPastedShoppingText('');
+          setShowPasteShopping(false);
+          showToast(`Dodano ${count} ${count === 1 ? 'produkt' : count < 5 ? 'produkty' : 'produktów'} na listę! 🛒`);
+        } catch (err) {
+          console.warn('Błąd dodawania wklejonej listy:', err);
+          showToast('Nie udało się dodać wszystkich produktów', 'error');
+        } finally {
+          setIsImportingShopping(false);
+        }
       };
 
       const toggleShoppingItem = async (item) => {
@@ -2245,7 +2357,7 @@
               </div>
             )}
 
-            {/* POWIADOMIENIA STARTOWE I NA ŻYWO (ZADANIA DO WYKONANIA / ZMIANY OD DRUGIEJ OSOBY) */}
+            {/* POWIADOMIENIA STARTOWE I NA ŻYWO */}
             {startupNotifications.filter((n) => !dismissedNotifIds[n.id]).length > 0 && (
               <div className="space-y-2">
                 {startupNotifications
@@ -2498,59 +2610,125 @@
 
                 {shoppingSubTab === 'list' ? (
                   <>
-                    <form
-                      onSubmit={handleQuickAddShopping}
-                      className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5"
-                    >
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                          placeholder="Co trzeba kupić? (np. mleko, chleb)"
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                          type="submit"
-                          className="w-11 h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0"
-                          aria-label="Dodaj produkt"
-                        >
-                          <Icon name="plus" className="w-5 h-5" />
-                        </button>
-                      </div>
+                    <div className="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-200/70 space-y-2.5">
+                      <form onSubmit={handleQuickAddShopping} className="space-y-2.5">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newItemName}
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            placeholder="Co trzeba kupić? (np. mleko, chleb)"
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            type="submit"
+                            className="w-11 h-11 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center shadow-sm active:scale-95 shrink-0"
+                            aria-label="Dodaj produkt"
+                          >
+                            <Icon name="plus" className="w-5 h-5" />
+                          </button>
+                        </div>
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          value={newItemAmount}
-                          onChange={(e) => setNewItemAmount(e.target.value)}
-                          className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
-                          aria-label="Ilość"
-                        />
-                        <select
-                          value={newItemUnit}
-                          onChange={(e) => setNewItemUnit(e.target.value)}
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"
-                          aria-label="Jednostka"
-                        >
-                          <option value="szt.">szt.</option>
-                          <option value="g">g</option>
-                          <option value="kg">kg</option>
-                          <option value="ml">ml</option>
-                          <option value="l">l</option>
-                          <option value="opak.">opak.</option>
-                          <option value="pęczek">pęczek</option>
-                        </select>
-                      </div>
-                    </form>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={newItemAmount}
+                            onChange={(e) => setNewItemAmount(e.target.value)}
+                            className="w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-center"
+                            aria-label="Ilość"
+                          />
+                          <select
+                            value={newItemUnit}
+                            onChange={(e) => setNewItemUnit(e.target.value)}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"
+                            aria-label="Jednostka"
+                          >
+                            <option value="szt.">szt.</option>
+                            <option value="g">g</option>
+                            <option value="kg">kg</option>
+                            <option value="ml">ml</option>
+                            <option value="l">l</option>
+                            <option value="opak.">opak.</option>
+                            <option value="pęczek">pęczek</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => setShowPasteShopping((v) => !v)}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border shrink-0 transition-colors ${
+                              showPasteShopping
+                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                            }`}
+                          >
+                            <Icon name="fileText" className="w-3.5 h-3.5" />
+                            Wklej listę
+                          </button>
+                        </div>
+                      </form>
+
+                      {showPasteShopping && (
+                        <div className="pt-2.5 border-t border-slate-100 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-extrabold text-slate-700">
+                              📋 Wklej całą listę zakupów
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowPasteShopping(false);
+                                setPastedShoppingText('');
+                              }}
+                              className="text-[11px] font-bold text-slate-400 hover:text-slate-600"
+                            >
+                              Zamknij
+                            </button>
+                          </div>
+                          <textarea
+                            rows="4"
+                            value={pastedShoppingText}
+                            onChange={(e) => setPastedShoppingText(e.target.value)}
+                            placeholder={'Wklej produkty po przecinku lub każdy w nowej linii, np.:\nMleko 2 l\nChleb\n2 kg ziemniaków, jajka 10 szt., masło'}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          {parsedPastedItems.length > 0 && (
+                            <div className="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-2.5 space-y-1.5">
+                              <p className="text-[11px] font-extrabold text-indigo-900">
+                                Rozpoznane produkty ({parsedPastedItems.length}):
+                              </p>
+                              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                                {parsedPastedItems.map((pi, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[11px] font-semibold bg-white text-slate-800 border border-indigo-100 px-2 py-0.5 rounded-lg"
+                                  >
+                                    {pi.name} ({formatAmount(pi.amount)} {pi.unit})
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            disabled={parsedPastedItems.length === 0 || isImportingShopping}
+                            onClick={handleBulkAddShopping}
+                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-45 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99]"
+                          >
+                            <Icon name="plus" className="w-4 h-4" />
+                            {isImportingShopping
+                              ? 'Dodawanie...'
+                              : `Dodaj osobno na listę (${parsedPastedItems.length})`}
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
                     {uncheckedShopping.length === 0 && checkedShopping.length === 0 ? (
                       <div className="bg-white rounded-3xl p-8 text-center border border-slate-200/70">
                         <p className="text-4xl mb-2">🛒</p>
                         <p className="text-sm font-bold text-slate-800">Lista zakupów jest pusta</p>
                         <p className="text-xs text-slate-500 mt-1">
-                          Dopisz produkty wyżej albo wrzuć składniki z Planera tygodnia!
+                          Dopisz produkty wyżej, wklej gotową listę albo wrzuć składniki z Planera!
                         </p>
                       </div>
                     ) : (
@@ -2790,7 +2968,7 @@
             )}
 
             {/* ==================================================================
-                ZAKŁADKA 2: OBOWIĄZKI DOMOWE (Z PUNKTAMI)
+                ZAKŁADKA 3: PRZEPISY I PLANER
                ================================================================== */}
             {activeTab === 'recipes' && (
               <div className="space-y-4">
@@ -3053,7 +3231,7 @@
                         className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-all"
                       >
                         <Icon name="camera" className="w-4 h-4" />
-                        Wgraj zrzut ekranu z przepisem (IG / TikTok / www)
+                        Wgraj zrzuty ekranu z przepisem (1 lub kilka)
                       </button>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -3249,26 +3427,36 @@
                 </div>
 
                 <div className="p-4 overflow-y-auto space-y-4 flex-1">
-                  {selectedRecipe.screenshotUrl && (
-                    <div className="space-y-1.5">
+                  {((selectedRecipe.screenshotUrls && selectedRecipe.screenshotUrls.length > 0) ||
+                    selectedRecipe.screenshotUrl) && (
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                          📸 Zrzut ekranu przepisu
+                          📸 Zrzuty ekranu przepisu (
+                          {selectedRecipe.screenshotUrls?.length || 1})
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setZoomedScreenshot(selectedRecipe.screenshotUrl)}
-                          className="text-xs font-bold text-indigo-600"
-                        >
-                          Powiększ na cały ekran
-                        </button>
+                        <span className="text-[11px] font-bold text-indigo-600">
+                          Kliknij aby powiększyć
+                        </span>
                       </div>
-                      <img
-                        src={selectedRecipe.screenshotUrl}
-                        alt={selectedRecipe.title}
-                        onClick={() => setZoomedScreenshot(selectedRecipe.screenshotUrl)}
-                        className="w-full max-h-72 object-contain rounded-2xl border border-slate-200 bg-slate-50 cursor-pointer"
-                      />
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {(selectedRecipe.screenshotUrls?.length
+                          ? selectedRecipe.screenshotUrls
+                          : [selectedRecipe.screenshotUrl]
+                        ).map((shotUrl, idx) => (
+                          <img
+                            key={idx}
+                            src={shotUrl}
+                            alt={`${selectedRecipe.title} (${idx + 1})`}
+                            onClick={() => setZoomedScreenshot(shotUrl)}
+                            className={`${
+                              (selectedRecipe.screenshotUrls?.length || 1) > 1
+                                ? 'w-44 h-64 shrink-0'
+                                : 'w-full max-h-72'
+                            } object-contain rounded-2xl border border-slate-200 bg-slate-50 cursor-pointer`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -3899,7 +4087,7 @@
     }
 
     // ============================================================================
-    // MODAL: DODAWANIE PRZEPISU (ZRZUT EKRANU 1-KLIK + WŁASNY + IMPORT AI)
+    // MODAL: DODAWANIE PRZEPISU (WIELE ZRZUTÓW EKRANU + AUTOMATYCZNE AI + WŁASNY)
     // ============================================================================
     function RecipeImportModal({ initialMode = 'manual', geminiApiKey, fridgeItems, onSave, onSaveGeminiKey, onOpenSettings, onClose }) {
       const [mode, setMode] = useState(initialMode);
@@ -3914,10 +4102,8 @@
       const [ingredients, setIngredients] = useState([{ name: '', amount: '1', unit: 'szt.' }]);
       const [stepsText, setStepsText] = useState('');
 
-      const [imagePreview, setImagePreview] = useState('');
-      const [imageBase64, setImageBase64] = useState('');
-      const [imageMime, setImageMime] = useState('image/jpeg');
-      const [storageScreenshotUrl, setStorageScreenshotUrl] = useState('');
+      // Tablica wgranych zrzutów ekranu [{ id, previewUrl, base64, mime, storageUrl }]
+      const [screenshots, setScreenshots] = useState([]);
       const [quickShotTitle, setQuickShotTitle] = useState('');
       const [quickShotTag, setQuickShotTag] = useState('klasyki');
       const [inlineKeyInput, setInlineKeyInput] = useState('');
@@ -3928,28 +4114,139 @@
         setTags((prev) => (prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId]));
       };
 
-      const handleFile = async (e) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
+      const runAIWithImages = async (shotsList, keyToUse) => {
+        const activeKey = (keyToUse || '').trim();
+        if (!activeKey || !shotsList || shotsList.length === 0) return;
+        setLoading(true);
         setErrorMsg('');
         try {
-          const [forAi, forStorage] = await Promise.all([
-            compressImageFile(f, 1200, 0.8),
-            compressImageFile(f, 750, 0.62)
-          ]);
-          setImagePreview(forAi.dataUrl);
-          setImageBase64(forAi.base64);
-          setImageMime(forAi.mime);
-          setStorageScreenshotUrl(forStorage.dataUrl);
+          const sys = 'Jesteś polskim asystentem kulinarnym. Odczytuj przepisy ze zrzutów ekranu (może być kilka zdjęć jednego przepisu, np. osobno składniki i osobno kroki przygotowania). Scal wszystkie informacje w jeden kompletny polski przepis. Zwróć WYŁĄCZNIE poprawny obiekt JSON zgodny ze schematem.';
+          const parts = [
+            {
+              text: `Odczytaj dokładnie cały przepis z ${shotsList.length === 1 ? 'poniższego zrzutu ekranu' : `poniższych ${shotsList.length} zrzutów ekranu tego samego przepisu`} (z Instagrama, TikToka, bloga kulinarnego lub książki). Wyciągnij tytuł, emoji, czas przygotowania, liczbę porcji, pasujące tagi, kompletną listę potrzebnych składników z dokładnymi ilościami i jednostkami oraz szczegółowe kroki przygotowania po polsku.`
+            }
+          ];
+          for (const shot of shotsList) {
+            parts.push({ inlineData: { mimeType: shot.mime, data: shot.base64 } });
+          }
+
+          const payload = {
+            systemInstruction: { parts: [{ text: sys }] },
+            contents: [{ role: 'user', parts }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                  title: { type: 'STRING' },
+                  emoji: { type: 'STRING' },
+                  prepTime: { type: 'NUMBER' },
+                  servings: { type: 'NUMBER' },
+                  tags: { type: 'ARRAY', items: { type: 'STRING' } },
+                  note: { type: 'STRING' },
+                  ingredients: {
+                    type: 'ARRAY',
+                    items: {
+                      type: 'OBJECT',
+                      properties: {
+                        name: { type: 'STRING' },
+                        amount: { type: 'NUMBER' },
+                        unit: { type: 'STRING' },
+                        isPantry: { type: 'BOOLEAN' }
+                      },
+                      required: ['name', 'amount', 'unit']
+                    }
+                  },
+                  steps: { type: 'ARRAY', items: { type: 'STRING' } }
+                },
+                required: ['title', 'ingredients', 'steps']
+              }
+            }
+          };
+
+          const data = await fetchGeminiWithBackoff(activeKey, payload);
+          const txt = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+          const first = txt.indexOf('{');
+          const last = txt.lastIndexOf('}');
+          const parsed = JSON.parse(txt.slice(first, last + 1));
+
+          const validTagIds = new Set(RECIPE_TAGS.map((t) => t.id));
+          const cleanTags = (parsed.tags || []).filter((t) => validTagIds.has(t));
+
+          setTitle(parsed.title || quickShotTitle || 'Nowy przepis');
+          setEmoji(parsed.emoji || '🍽️');
+          setPrepTime(String(parsed.prepTime || 25));
+          setServings(String(parsed.servings || 2));
+          setTags(cleanTags.length ? cleanTags : [quickShotTag || 'klasyki']);
+          setIngredients(
+            (parsed.ingredients || []).map((i) => ({
+              name: i.name || '',
+              amount: String(i.amount || 1),
+              unit: i.unit || 'szt.'
+            }))
+          );
+          setStepsText((parsed.steps || []).join('\n'));
+          setMode('manual');
+        } catch (err) {
+          setErrorMsg(err.message || 'Nie udało się odczytać przepisu ze zrzutów ekranu.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleFiles = async (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = '';
+        if (files.length === 0) return;
+        setErrorMsg('');
+        try {
+          const remainingSlots = Math.max(0, 6 - screenshots.length);
+          const filesToProcess = files.slice(0, remainingSlots);
+          if (filesToProcess.length === 0) {
+            setErrorMsg('Możesz dodać maksymalnie 6 zrzutów ekranu do jednego przepisu.');
+            return;
+          }
+
+          // Kompresujemy zdjęcia nieco lżej przy większej liczbie ekranów, żeby zmieścić się w limicie 1 MB bazy
+          const storageQuality = filesToProcess.length + screenshots.length > 2 ? 0.48 : 0.6;
+          const storageMaxDim = filesToProcess.length + screenshots.length > 2 ? 620 : 750;
+
+          const newShots = await Promise.all(
+            filesToProcess.map(async (f, idx) => {
+              const [forAi, forStorage] = await Promise.all([
+                compressImageFile(f, 1200, 0.8),
+                compressImageFile(f, storageMaxDim, storageQuality)
+              ]);
+              return {
+                id: `shot-${Date.now()}-${idx}-${Math.random()}`,
+                previewUrl: forAi.dataUrl,
+                base64: forAi.base64,
+                mime: forAi.mime,
+                storageUrl: forStorage.dataUrl
+              };
+            })
+          );
+
+          const mergedShots = [...screenshots, ...newShots];
+          setScreenshots(mergedShots);
+
+          // Automatyczne przerobienie na przepis z potrzebnymi składnikami i przygotowaniem od razu po wgraniu!
+          if (geminiApiKey && geminiApiKey.trim()) {
+            await runAIWithImages(mergedShots, geminiApiKey);
+          }
         } catch (err) {
           setErrorMsg(err.message);
         }
       };
 
+      const removeScreenshot = (shotId) => {
+        setScreenshots((prev) => prev.filter((s) => s.id !== shotId));
+      };
+
       const handleSaveScreenshotDirectly = async () => {
         setErrorMsg('');
-        if (!storageScreenshotUrl) {
-          setErrorMsg('Najpierw wybierz zrzut ekranu z galerii iPhone’a.');
+        if (screenshots.length === 0) {
+          setErrorMsg('Najpierw wybierz zrzuty ekranu z galerii iPhone’a.');
           return;
         }
         const finalTitle = quickShotTitle.trim() || `Przepis ze zrzutu (${new Date().toLocaleDateString('pl-PL')})`;
@@ -3959,8 +4256,9 @@
           prepTime: 25,
           servings: 2,
           tags: [quickShotTag || 'klasyki'],
-          source: 'Zrzut ekranu',
-          screenshotUrl: storageScreenshotUrl,
+          source: screenshots.length > 1 ? `Zrzuty ekranu (${screenshots.length})` : 'Zrzut ekranu',
+          screenshotUrl: screenshots[0].storageUrl,
+          screenshotUrls: screenshots.map((s) => s.storageUrl),
           note: 'Kliknij zdjęcie powyżej, aby powiększyć przepis na cały ekran podczas gotowania.',
           ingredients: [],
           steps: ['Otwórz powiększony zrzut ekranu powyżej i przygotuj danie krok po kroku.']
@@ -3980,7 +4278,7 @@
             category: guessShoppingCategory(i.name),
             isPantry: /(sól|pieprz|olej|oliw|przypraw|cukier|woda)/i.test(i.name)
           }));
-        if (parsedIngs.length === 0 && !storageScreenshotUrl) {
+        if (parsedIngs.length === 0 && screenshots.length === 0) {
           setErrorMsg('Dodaj przynajmniej jeden składnik.');
           return;
         }
@@ -3991,8 +4289,9 @@
           prepTime: Math.max(1, parseInt(prepTime, 10) || 25),
           servings: Math.max(1, parseInt(servings, 10) || 2),
           tags: tags.length > 0 ? tags : ['klasyki'],
-          source: storageScreenshotUrl ? 'Zrzut ekranu + AI' : 'Własny przepis',
-          screenshotUrl: storageScreenshotUrl || '',
+          source: screenshots.length > 0 ? 'Zrzut ekranu + AI' : 'Własny przepis',
+          screenshotUrl: screenshots[0]?.storageUrl || '',
+          screenshotUrls: screenshots.map((s) => s.storageUrl),
           ingredients: parsedIngs,
           steps: steps.length > 0 ? steps : ['Przygotuj składniki i ugotuj danie.']
         });
@@ -4002,20 +4301,24 @@
         setErrorMsg('');
         const activeKey = (overrideKey !== null ? overrideKey : geminiApiKey).trim();
         if (!activeKey) {
-          setErrorMsg('Wklej poniżej swój darmowy klucz Google AI Studio (albo zapisz sam zrzut bez AI).');
+          setErrorMsg('Wklej poniżej swój darmowy klucz Google AI Studio (albo zapisz same zrzuty bez AI).');
           return;
         }
-        if (mode === 'image' && !imageBase64) { setErrorMsg('Najpierw wybierz zrzut ekranu z galerii.'); return; }
+        if (mode === 'image') {
+          if (screenshots.length === 0) {
+            setErrorMsg('Najpierw wybierz zrzuty ekranu z galerii.');
+            return;
+          }
+          await runAIWithImages(screenshots, activeKey);
+          return;
+        }
         if (mode === 'text' && !rawText.trim()) { setErrorMsg('Wklej tekst przepisu.'); return; }
 
         setLoading(true);
         try {
           const sys = 'Jesteś polskim asystentem kulinarnym. Odczytuj lub twórz sprawdzone polskie przepisy domowe. Zwróć WYŁĄCZNIE poprawny obiekt JSON zgodny ze schematem.';
           const parts = [];
-          if (mode === 'image') {
-            parts.push({ text: 'Odczytaj dokładnie cały przepis ze zdjęcia (zrzutu ekranu z Instagrama, TikToka lub strony jak Ania Gotuje). Podaj tytuł, emoji, czas, porcje, pasujące tagi z dozwolonej listy, wszystkie składniki z ilościami oraz jasne kroki przygotowania po polsku.' });
-            parts.push({ inlineData: { mimeType: imageMime, data: imageBase64 } });
-          } else if (mode === 'text') {
+          if (mode === 'text') {
             parts.push({ text: `Zamień poniższy opis w uporządkowany polski przepis:\n\n${rawText.trim()}` });
           } else {
             const fridgeList = fridgeItems.map((f) => f.name).join(', ');
@@ -4102,7 +4405,7 @@
 
             <div className="px-4 pt-3 flex gap-1.5 overflow-x-auto no-scrollbar">
               {[
-                { id: 'image', label: '📸 Zrzut ekranu' },
+                { id: 'image', label: '📸 Zrzuty ekranu' },
                 { id: 'manual', label: '✏️ Własne' },
                 { id: 'text', label: '📝 Z tekstu' },
                 { id: 'ai', label: '✨ Pomysł AI' }
@@ -4126,14 +4429,34 @@
                 </div>
               )}
 
+              {loading && (
+                <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center gap-3 text-xs font-bold text-indigo-900">
+                  <Icon name="loader" className="w-5 h-5 text-indigo-600 animate-spin shrink-0" />
+                  <span>AI analizuje {screenshots.length > 1 ? `${screenshots.length} zrzuty ekranu` : 'przepis'} i wyciąga składniki oraz przygotowanie...</span>
+                </div>
+              )}
+
               {mode === 'manual' ? (
                 <form id="manual-recipe-form" onSubmit={handleSaveManual} className="space-y-3">
-                  {storageScreenshotUrl && (
-                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2.5">
-                      <img src={storageScreenshotUrl} alt="Miniatura" className="w-12 h-12 object-cover rounded-xl shrink-0" />
-                      <p className="text-xs font-semibold text-emerald-800">
-                        ✅ Zrzut ekranu odczytany! Sprawdź dane niżej i kliknij „Zapisz przepis”.
-                      </p>
+                  {screenshots.length > 0 && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold text-emerald-800">
+                          ✅ Przerobiono z {screenshots.length} {screenshots.length === 1 ? 'zrzutu' : 'zrzutów'}! Sprawdź i kliknij „Zapisz przepis”.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setMode('image')}
+                          className="text-[11px] font-bold text-indigo-600 shrink-0"
+                        >
+                          + Dodaj zrzut
+                        </button>
+                      </div>
+                      <div className="flex gap-1.5 overflow-x-auto">
+                        {screenshots.map((s) => (
+                          <img key={s.id} src={s.previewUrl} alt="Miniatura" className="w-12 h-12 object-cover rounded-xl shrink-0 border border-emerald-200" />
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -4235,7 +4558,7 @@
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-600">Kroki (każdy w nowej linii)</label>
+                    <label className="text-xs font-bold text-slate-600">Kroki przygotowania (każdy w nowej linii)</label>
                     <textarea
                       rows="4"
                       value={stepsText}
@@ -4247,24 +4570,44 @@
                 </form>
               ) : mode === 'image' ? (
                 <div className="space-y-3">
-                  <label className="block w-full py-7 px-4 border-2 border-dashed border-indigo-300 bg-indigo-50/40 hover:bg-indigo-50 rounded-3xl text-center cursor-pointer transition-colors">
+                  <label className="block w-full py-6 px-4 border-2 border-dashed border-indigo-300 bg-indigo-50/40 hover:bg-indigo-50 rounded-3xl text-center cursor-pointer transition-colors">
                     <span className="text-3xl block mb-1.5">📸</span>
                     <span className="text-sm font-extrabold text-indigo-700 block">
-                      {imagePreview ? 'Zmień zrzut ekranu' : 'Wybierz zrzut ekranu z iPhone’a'}
+                      {screenshots.length > 0
+                        ? `Dodaj kolejne zrzuty ekranu (masz: ${screenshots.length}/6)`
+                        : 'Wybierz 1 lub kilka zrzutów ekranu z iPhone’a'}
                     </span>
                     <span className="text-[11px] text-slate-500 block mt-0.5">
-                      Instagram, TikTok, Ania Gotuje lub zdjęcie z książki kucharskiej
+                      Zaznacz od razu składniki i opis przygotowania — przerobimy wszystko na gotowy przepis!
                     </span>
-                    <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+                    <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
                   </label>
 
-                  {imagePreview && (
+                  {screenshots.length > 0 && (
                     <div className="space-y-3">
-                      <img
-                        src={imagePreview}
-                        alt="Podgląd zrzutu"
-                        className="w-full max-h-56 object-contain rounded-2xl border border-slate-200 bg-slate-50"
-                      />
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {screenshots.map((shot, idx) => (
+                          <div key={shot.id} className="relative shrink-0">
+                            <img
+                              src={shot.previewUrl}
+                              alt={`Zrzut ${idx + 1}`}
+                              className="w-28 h-40 object-cover rounded-2xl border border-slate-200 bg-slate-50"
+                            />
+                            <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-slate-900/75 text-white text-[10px] font-bold rounded-md">
+                              #{idx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeScreenshot(shot.id)}
+                              className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 text-white rounded-full flex items-center justify-center shadow"
+                              aria-label="Usuń zrzut"
+                            >
+                              <Icon name="x" className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
                       <input
                         type="text"
                         value={quickShotTitle}
@@ -4293,7 +4636,7 @@
                       {!geminiApiKey && (
                         <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-2">
                           <p className="text-[11px] text-indigo-900">
-                            Chcesz, żeby AI automatycznie przepisało składniki ze zdjęcia na listę zakupów? Wklej darmowy klucz z <strong>aistudio.google.com</strong> (albo po prostu kliknij „Zapisz sam zrzut” poniżej):
+                            Wklej darmowy klucz z <strong>aistudio.google.com</strong>, aby od razu przerobić zrzuty na listę składników i kroki przygotowania:
                           </p>
                           <div className="flex gap-1.5">
                             <input
@@ -4312,7 +4655,7 @@
                               }}
                               className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shrink-0"
                             >
-                              Użyj AI
+                              Przerób AI
                             </button>
                           </div>
                         </div>
@@ -4358,16 +4701,18 @@
                   {geminiApiKey && (
                     <button
                       type="button"
-                      disabled={loading || !imageBase64}
+                      disabled={loading || screenshots.length === 0}
                       onClick={() => runAI()}
                       className="w-full py-3 bg-indigo-600 disabled:opacity-45 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
                     >
-                      {loading ? 'AI odczytuje przepis...' : '✨ Odczytaj składniki i kroki przez AI'}
+                      {loading
+                        ? 'AI przerabia na przepis...'
+                        : `✨ Przerób ${screenshots.length > 1 ? `(${screenshots.length} zrzuty)` : ''} na przepis AI`}
                     </button>
                   )}
                   <button
                     type="button"
-                    disabled={!storageScreenshotUrl || loading}
+                    disabled={screenshots.length === 0 || loading}
                     onClick={handleSaveScreenshotDirectly}
                     className={`w-full py-3 disabled:opacity-45 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 ${
                       geminiApiKey
@@ -4375,7 +4720,7 @@
                         : 'bg-slate-900 text-white shadow-sm'
                     }`}
                   >
-                    📸 Zapisz sam zrzut jako przepis (bez AI)
+                    📸 Zapisz {screenshots.length > 1 ? `zrzuty (${screenshots.length})` : 'sam zrzut'} jako przepis
                   </button>
                 </div>
               ) : (
